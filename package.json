@@ -4,7 +4,8 @@
   "description": "simple bot",
   "main": "bot.js",
   "dependencies": {
-    "discord.js": "^11.1.0"
+    "discord.js": "^11.1.0",
+    "json-fs-store": "^1.0.1"
   },
   "devDependencies": {},
   "scripts": {

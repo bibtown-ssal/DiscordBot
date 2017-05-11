@@ -1,8 +1,9 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
 const settings = require('./settings.json');
-var IDlist = require('./Identifier.json');
-const fs = require('fs');
+const store = require('json-fs-store')();
+var IDlist = require('./store/Identifier.json');
+
 //initialisation
 bot.on('ready',() =>{
     console.log('online and ready!');
@@ -19,23 +20,11 @@ function answer(id,name){
   }else return name;
 }
 
-/*function addID(id,name){
-  var abc = {};
-  abc[id] = name;
-  fs.readFile('Identifier.json', 'utf8', function readFileCallback(err, data){
-    if (err){
-        console.log(err);
-    } else {
-    obj = JSON.parse(data); //now it an object
-    obj.push({abc}); //add some data
-    json = JSON.stringify(obj); //convert it back to json
-    fs.writeFile('myjsonfile.json', json, 'utf8', callback); // write it back
-}});
-  console.log(IDlist);
-
+function addID(id,name){
+  IDlist[id] = name;
+  store.add(IDlist, function(err){ if (err) throw err;})
   return;
-}*/
-//can't make it work :(
+}
 
 bot.on('message', message => {
   if (message.author.bot) return;
@@ -51,6 +40,10 @@ bot.on('message', message => {
   }//answers 'Pond!' to '!ping'
   else if (message.content.startsWith(settings.prefix + 'test')){
     message.channel.send(answer(message.author.id,message.author.username));
+    console.log(IDlist);
+  }
+  else if (message.content.startsWith(settings.prefix + 'rename')){
+    addID(argsresult , message.author.id);
   }
   else if (message.content === settings.prefix + 'coin'){
     let x = Math.floor((Math.random() * 10) / 5);
@@ -77,7 +70,7 @@ bot.on('message', message => {
   } //randomnly picks between the options
 
   else if (message.content === settings.prefix + 'help') {
-      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale") }
+      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!rename new name : change what the bot calls you!") }
 
   else if (message.content.startsWith (settings.prefix + 'temp')) {
     let pattern = /(-?[0-9]+)([cf])/i;
@@ -86,7 +79,7 @@ bot.on('message', message => {
       tempTo[1] = parseInt(tempTo[1]);
       if (tempTo[2] === 'c'||tempTo[2] === 'C'){
         message.channel.send(tempTo[0] + ' is ' + Math.round(tempTo[1]*1.8+32) + '°F! (~' + Math.round(tempTo[1]+273) + 'K)');
-      } else if (tempTo[2] === 'f'||tempTo[2] === 'F'){ 
+      } else if (tempTo[2] === 'f'||tempTo[2] === 'F'){
         message.channel.send(tempTo[0] + ' is ' + Math.round((tempTo[1]-32)/1.8) + '°C! (~' + Math.round((tempTo[1]+459)/1.8) + 'K)')
       }
     } else message.channel.send('I don\'t understand :(  Please ask me about ##C or ##F');
