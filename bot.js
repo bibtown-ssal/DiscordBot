@@ -21,7 +21,7 @@ function answer(id,name){
 }
 
 function addID(id,name){
-  IDlist[id] = name;
+  IDlist[name] = id;
   store.add(IDlist, function(err){ if (err) throw err;})
   return;
 }
@@ -52,16 +52,8 @@ bot.on('message', message => {
   }//flips a coin for user
 
   else if (message.content.startsWith(settings.prefix + 'nickname')){
-    if (message.author.id === settings.OwnerID){
       message.guild.member(bot.user).setNickname(argsresult);
-      console.log(argsresult);
-    } //let owner nickname bot
-    else if(argsresult !== 'ssalogel' || 'ssalogei' || 'Ssalogel' || 'Ssalogei'){
-      //message.member.setNickname(argsresult); //uncomment if you want users to nickname themselves
-      message.guild.member(bot.user).setNickname(argsresult); //comment to prevent users from nicknaming the bot
       console.log(argsresult + ' ' + message.author.username);
-    }else message.channel.send("That's my creator's name! ");
-
   }
 
   else if (message.content.startsWith (settings.prefix + 'choose')){
