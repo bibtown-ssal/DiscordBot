@@ -5,7 +5,9 @@
   "main": "bot.js",
   "dependencies": {
     "discord.js": "^11.1.0",
-    "json-fs-store": "^1.0.1"
+    "json-fs-store": "^1.0.1",
+    "openweather-node": "0.0.4",
+    "urban": "^0.3.1"
   },
   "devDependencies": {},
   "scripts": {

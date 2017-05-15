@@ -3,6 +3,8 @@ const bot = new Discord.Client();
 const settings = require('./settings.json');
 const store = require('json-fs-store')();
 var IDlist = require('./store/Identifier.json');
+const urban = require('urban');
+
 
 //initialisation
 bot.on('ready',() =>{
@@ -50,20 +52,16 @@ bot.on('message', message => {
     let coin = ['head', 'tail'];
       message.channel.send(coin[x] + ', ' + answer(message.author.id,message.author.username) + ', I hope its the result you wanted!');
   }//flips a coin for user
-
   else if (message.content.startsWith(settings.prefix + 'nickname')){
       message.guild.member(bot.user).setNickname(argsresult);
       console.log(argsresult + ' ' + message.author.username);
   }
-
   else if (message.content.startsWith (settings.prefix + 'choose')){
       let x = Math.floor(Math.random() * args.length);
       message.channel.send("I will decide for you, "+answer(message.author.id,message.author.username)+"!\n" + args[x]+"!");
   } //randomnly picks between the options
-
   else if (message.content === settings.prefix + 'help') {
-      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!rename new name : change what the bot calls you!") }
-
+      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!rename new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word") }
   else if (message.content.startsWith (settings.prefix + 'temp')) {
     let pattern = /(-?[0-9]+)([cf])/i;
     if (pattern.test(argsresult)){
@@ -103,12 +101,18 @@ bot.on('message', message => {
       message.channel.send("You rolled: " + total + ' !  (' + diceArray[0] + ' = ' + results.join(' + ') + ')');
     } else if(!pattern.test(dice)) {message.channel.send('I don\'t understand :(  Please tell me to roll "#d#+#"!')}
   }
-
   else if (message.content.startsWith(settings.prefix + 'setgame')){
     if(!argsresult){
       argsresult = null;
     }
       bot.user.setGame(argsresult);
+  }
+  else if (message.content.startsWith(settings.prefix + 'urban')){
+    let definition = urban(argsresult);
+    definition.first(function(json){
+      message.channel.send(argsresult + ' \: ' + json.definition);
+    });
+
   }
 });
 
