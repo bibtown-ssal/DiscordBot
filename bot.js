@@ -48,7 +48,9 @@ bot.on('message', message => {
       return;
    } else {
       command = message.content.slice(message.content.indexOf(settings.name + ': ') + (settings.name + ': ').length);
-      command = command.slice(0, command.indexOf(' '));
+      if(command.indexOf(' ') !== -1) {
+        command = command.slice(0, command.indexOf(' '));
+      }
       args = message.content.split(" ").slice(2).join(" ");
    }
   } else {
