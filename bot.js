@@ -9,6 +9,7 @@ const urban = require('urban');
 //initialisation
 bot.on('ready',() =>{
     console.log('online and ready!');
+	bot.user.setGame("!help for command");
 });
 //sanitize input
 function escapeRegExp(string) {
@@ -22,7 +23,7 @@ function answer(id,name){
 }
 
 function addID(id,name){
-  IDlist[name] = id;
+  IDlist[id] = name;
   store.add(IDlist, function(err){ if (err) throw err;})
   return;
 }
@@ -31,7 +32,7 @@ bot.on('message', message => {
   //prevent bot from answering bots
   if (message.author.bot) return;
   //making sure the message was to the bot
-  console.log("recieved message: '" + message.content + "'");
+//  console.log("recieved message: '" + message.content + "'");
 
   let command;
   let args;
@@ -43,11 +44,11 @@ bot.on('message', message => {
       command = message.content.substr(0,message.content.indexOf(' ')).substring(1);
       args = message.content.substr(message.content.indexOf(' ')+1);
     }
-  } else if(settings.name) {
-   if(!message.content.startsWith(settings.name + ': ')) {
+  } else if(IDlist.name) {
+   if(!message.content.startsWith(IDlist.name + ': ')) {
       return;
    } else {
-      command = message.content.slice(message.content.indexOf(settings.name + ': ') + (settings.name + ': ').length);
+      command = message.content.slice(message.content.indexOf(IDlist.name + ': ') + (IDlist.name + ': ').length);
       if(command.indexOf(' ') !== -1) {
         command = command.slice(0, command.indexOf(' '));
       }
@@ -56,7 +57,7 @@ bot.on('message', message => {
   } else {
     console.log('must set name or prefix');
   }
-  console.log("processing");
+//  console.log("processing");
   console.log('command: "' + command + '"');
   console.log('args: "' + args + '"');
 
@@ -68,23 +69,25 @@ bot.on('message', message => {
   } else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
     console.log(IDlist);
-  } else if (command === 'rename'){
-    addID(args , message.author.id);
+  } else if (command === 'callme'){
+    addID(message.author.id, args);
+	message.channel.send('I will now call you: ' + answer(message.author.id,message.author.username));
   } else if (command === 'coin'){
     let x = Math.floor((Math.random() * 10) / 5);
     let coin = ['head', 'tail'];
       message.channel.send(coin[x] + ', ' + answer(message.author.id,message.author.username) + ', I hope its the result you wanted!');
   }
-//  else if (message.content.startsWith(settings.prefix + 'nickname')){
-//      message.guild.member(bot.user).setNickname(args);
-//      console.log(args + ' ' + message.author.username);
-//  }
+  else if (command === 'nickname'){
+      message.guild.member(bot.user).setNickname(args);
+      console.log(args + ' ' + message.author.username);
+	  addID('name',args);
+  }
   else if (command === 'choose'){
     console.log('choosing');
     let x = Math.floor(Math.random() * args.split(' ').length);
     message.channel.send("I will decide for you, "+answer(message.author.id,message.author.username)+"!\n" + args.split(' ')[x]+"!");
   } else if (message.content === settings.prefix + 'help') {
-      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!rename new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word")
+      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word")
   } else if (command === 'temp') {
     let pattern = /(-?[0-9]+)([cf])/i;
     if (pattern.test(args)){
