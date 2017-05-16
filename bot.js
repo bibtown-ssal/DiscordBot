@@ -2,13 +2,18 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const settings = require('./settings.json');
 const store = require('json-fs-store')();
-var IDlist = require('./store/Identifier.json');
+var idList = require('./store/Identifier.json');
 const urban = require('urban');
 
+if(!idList.botName) {
+  idList.botName = 'bot';
+  store.add(idList, function(err){ if (err) throw err;})
+}
 
 //initialisation
 bot.on('ready',() =>{
-    console.log('online and ready!');
+  console.log('online and ready!');
+  //message.guild.member(bot.user).setNickname(args);
 });
 //sanitize input
 function escapeRegExp(string) {
@@ -16,15 +21,28 @@ function escapeRegExp(string) {
 }
 
 function answer(id,name){
-  if(IDlist[id]){
-    return IDlist[id];
+  if(idList[id]){
+    return idList[id];
   }else return name;
 }
 
 function addID(id,name){
-  IDlist[name] = id;
-  store.add(IDlist, function(err){ if (err) throw err;})
+  idList[name] = id;
+  store.add(idList, function(err){ if (err) throw err;})
   return;
+}
+
+function parseArgs(message, prefix) {
+  command = message.slice(prefix.length);
+  //remove anything after a space from command
+  if(command.indexOf(' ') !== -1) {
+    command = command.slice(0, command.indexOf(' '));
+  }
+  args = message.splice(prefix.length, message.length);
+  return {
+    command: command,
+    args: args,
+  }
 }
 
 bot.on('message', message => {
@@ -33,30 +51,16 @@ bot.on('message', message => {
   //making sure the message was to the bot
   console.log("recieved message: '" + message.content + "'");
 
-  let command;
-  let args;
+  let parsed;
   //Prefix set, no name set, starts with prefix
-  if(settings.prefix) {
-    if(!message.content.startsWith(settings.prefix)) {
-      return;
-    } else {
-      command = message.content.substr(0,message.content.indexOf(' ')).substring(1);
-      args = message.content.substr(message.content.indexOf(' ')+1);
-    }
-  } else if(settings.name) {
-   if(!message.content.startsWith(settings.name + ': ')) {
-      return;
-   } else {
-      command = message.content.slice(message.content.indexOf(settings.name + ': ') + (settings.name + ': ').length);
-      if(command.indexOf(' ') !== -1) {
-        command = command.slice(0, command.indexOf(' '));
-      }
-      args = message.content.split(" ").slice(2).join(" ");
-   }
-  } else {
-    console.log('must set name or prefix');
+  if(settings.prefix && message.content.startsWith(settings.prefix)) {
+    parsed = parseArgs(message.content, settings.prefix);
+  } else if(idList.botName && message.content.startsWith(idList.botName + ': ')) {
+    parsed = parseArgs(message.content, idList.botName);
   }
   console.log("processing");
+  let command = parsed.command;
+  let args = parsed.args;
   console.log('command: "' + command + '"');
   console.log('args: "' + args + '"');
 
@@ -67,7 +71,7 @@ bot.on('message', message => {
       message.channel.send('Pong!');
   } else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
-    console.log(IDlist);
+    console.log(idList);
   } else if (command === 'rename'){
     addID(args , message.author.id);
   } else if (command === 'coin'){
@@ -75,10 +79,12 @@ bot.on('message', message => {
     let coin = ['head', 'tail'];
       message.channel.send(coin[x] + ', ' + answer(message.author.id,message.author.username) + ', I hope its the result you wanted!');
   }
-//  else if (message.content.startsWith(settings.prefix + 'nickname')){
-//      message.guild.member(bot.user).setNickname(args);
-//      console.log(args + ' ' + message.author.username);
-//  }
+  else if (message.content.startsWith(settings.prefix + 'nickname')){
+    idList.botName = args
+    store.add(idList, function(err){ if (err) throw err;})
+    message.guild.member(bot.user).setNickname(args);
+    console.log(args + ' ' + message.author.username);
+  }
   else if (command === 'choose'){
     console.log('choosing');
     let x = Math.floor(Math.random() * args.split(' ').length);
