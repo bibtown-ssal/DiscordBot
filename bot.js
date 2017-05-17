@@ -140,5 +140,4 @@ bot.on('message', message => {
   }
 
 });
-
-bot.login(settings.token);
+try{ bot.login(settings.token);}catch(err){console.log(err);}
