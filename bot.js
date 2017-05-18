@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const settings = require('./settings.json');
 const store = require('json-fs-store')();
-var IDlist = require('./store/Identifier.json');
+var idList = require('./store/Identifier.json');
 const urban = require('urban');
 
 
@@ -17,17 +17,32 @@ function escapeRegExp(string) {
 }
 
 function answer(id,name){
-  if(IDlist[id]){
-    return IDlist[id];
+  if(idList[id]){
+    return idList[id];
   }else return name;
 }
 
 function addID(id,name){
-  IDlist[id] = name;
-  store.add(IDlist, function(err){ if (err) throw err;})
+  idList[id] = name;
+  store.add(idList, function(err){ if (err) throw err;})
   return;
 }
 
+function parseArgs(message, prefix) {
+  command = message.slice(prefix.length);
+  //remove anything after a space from command
+  if(command.indexOf(' ') !== -1) {
+    command = command.slice(0, command.indexOf(' '));
+  }
+  args = message.splice(prefix.length, message.length);
+  return {
+    command: command,
+    args: args,
+  }
+}
+
+
+try{
 bot.on('message', message => {
   //prevent bot from answering bots
   if (message.author.bot) return;
@@ -43,6 +58,7 @@ bot.on('message', message => {
     } else {
       command = message.content.substr(0,message.content.indexOf(' ')).substring(1);
       args = message.content.substr(message.content.indexOf(' ')+1);
+	  if (!command) {command = args.substring(1);}
     }
   } else if(IDlist.name) {
    if(!message.content.startsWith(IDlist.name + ': ')) {
@@ -56,19 +72,30 @@ bot.on('message', message => {
    }
   } else {
     console.log('must set name or prefix');
+}
+/*
+  let parsed;
+  //Prefix set, no name set, starts with prefix
+  if(settings.prefix && message.content.startsWith(settings.prefix)) {
+    parsed = parseArgs(message.content, settings.prefix);
+  } else if(idList.botName && message.content.startsWith(idList.botName + ': ')) {
+    parsed = parseArgs(message.content, idList.botName);
   }
 //  console.log("processing");
+  let command = parsed.command;
+  let args = parsed.args;
   console.log('command: "' + command + '"');
   console.log('args: "' + args + '"');
 
-  //now either starts with prefix or 'name: '
+  //now either starts with prefix or 'name: '*/
 
-  //stringify the message without the commend
+  //stringify the message without the command
+  
   if (command === 'ping'){
       message.channel.send('Pong!');
   } else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
-    console.log(IDlist);
+    console.log(idList);
   } else if (command === 'callme'){
     addID(message.author.id, args);
 	message.channel.send('I will now call you: ' + answer(message.author.id,message.author.username));
@@ -136,8 +163,8 @@ bot.on('message', message => {
     });
 
   } else {
-    message.channel.send('What?');
+    message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
   }
-
-});
+  
+});}catch(err){console.log(err);}
 try{ bot.login(settings.token);}catch(err){console.log(err);}
