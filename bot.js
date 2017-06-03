@@ -86,16 +86,15 @@ bot.on('message', message => {
   let args = parsed.args;
   console.log('command: "' + command + '"');
   console.log('args: "' + args + '"');
-
   //now either starts with prefix or 'name: '*/
 
   //stringify the message without the command
-  
+  if(command.startsWith("!")) return;
   if (command === 'ping'){
       message.channel.send('Pong!');
   } else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
-    console.log(idList);
+//    console.log(idList);
   } else if (command === 'callme'){
     addID(message.author.id, args);
 	message.channel.send('I will now call you: ' + answer(message.author.id,message.author.username));
@@ -158,11 +157,12 @@ bot.on('message', message => {
       bot.user.setGame(args);
   } else if (command === 'urban'){
     let definition = urban(args);
-    definition.first(function(json){
-      message.channel.send(args + ' \: ' + json.definition);
+	definition.first(function(json){
+		try{message.channel.send(args + ' \: ' + json.definition);}catch(err){message.channel.send(args + ' is not a defined word in urbandictionnary');}
     });
 
-  } else {
+  } 
+  else {
     message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
   }
   
