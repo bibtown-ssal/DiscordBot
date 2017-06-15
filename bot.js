@@ -129,8 +129,8 @@ bot.on('message', message => {
   else if (command === 'nickname'){
       if(args != '!nickname'){
       message.channel.send("I'm changing my nickname to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
-      //message.guild.member(bot.user).setNickname(args);
-      setTimeout(nickcallback(args), 750);
+      message.guild.member(bot.user).setNickname(args);
+//      setTimeout(nickcallback(args), 750);
       console.log(args + ' ' + message.author.username);
       addID('name',args);
 }
