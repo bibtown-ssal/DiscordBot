@@ -22,6 +22,13 @@ function answer(id,name){
   }else return name;
 }
 
+function nickcallback(nick){
+    return function(){
+        message.guild.member(bot.user).setNickname(nick);
+        //message.channel.send("I'm changing my nickname to '" + name + "' thanks to " + answer(message.author.id,message.author.username));
+    }
+}
+
 function addID(id,name){
   idList[id] = name;
   store.add(idList, function(err){ if (err) throw err;})
@@ -60,7 +67,8 @@ bot.on('message', message => {
       args = message.content.substr(message.content.indexOf(' ')+1);
       if (!command) {command = args.substring(1);}
     }
-  } else if(IDlist.name) {
+  } 
+  else if(IDlist.name) {
    if(!message.content.startsWith(IDlist.name + ': ')) {
       return;
    } else {
@@ -78,7 +86,8 @@ bot.on('message', message => {
   //Prefix set, no name set, starts with prefix
   if(settings.prefix && message.content.startsWith(settings.prefix)) {
     parsed = parseArgs(message.content, settings.prefix);
-  } else if(idList.botName && message.content.startsWith(idList.botName + ': ')) {
+  } 
+  else if(idList.botName && message.content.startsWith(idList.botName + ': ')) {
     parsed = parseArgs(message.content, idList.botName);
   }
 //  console.log("processing");
@@ -92,28 +101,36 @@ bot.on('message', message => {
   if(command.startsWith("!")) return;
   if (command === 'ping'){
       message.channel.send('Pong!');
-  }else  if (command === 'say'){
+  }
+  else  if (command === 'say'){
       message.channel.send(args);
-  }else  if (command === 'source'){
+  }
+  else  if (command === 'source'){
       message.channel.send('https://github.com/bibtown-ssal/DiscordBot/');
-  }else  if (command === 'hug'||command === 'hugs'||command === 'HUG'||command === 'HUGS'||command === 'Hugs'||command === 'Hug'){
+  }
+  else  if (command === 'hug'||command === 'hugs'||command === 'HUG'||command === 'HUGS'||command === 'Hugs'||command === 'Hug'){
       if(args === '!hug'||args === '!hugs'||args === '!HUG'||args === '!HUGS'||args === '!Hugs'||args === '!Hug'){	  
         message.channel.send('*hugs ' + answer(message.author.id,message.author.username) + ' back*');	 
        }  else{message.channel.send('*hugs ' + args + '*');  }
-  } else if (command === 'test'){
+  } 
+  else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
 //    console.log(idList);
-  } else if (command === 'callme'){
+  } 
+  else if (command === 'callme'){
     addID(message.author.id, args);
     message.channel.send('I will now call you: ' + answer(message.author.id,message.author.username));
-  } else if (command === 'coin'){
+  } 
+  else if (command === 'coin'){
     let x = Math.floor((Math.random() * 10) / 5);
     let coin = ['head', 'tail'];
       message.channel.send(coin[x] + ', ' + answer(message.author.id,message.author.username) + ', I hope its the result you wanted!');
   }
   else if (command === 'nickname'){
       if(args != '!nickname'){
-    message.guild.member(bot.user).setNickname(args);
+      message.channel.send("I'm changing my nickname to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
+      //message.guild.member(bot.user).setNickname(args);
+      setTimeout(nickcallback(args), 750);
       console.log(args + ' ' + message.author.username);
       addID('name',args);
 }
@@ -122,20 +139,24 @@ bot.on('message', message => {
     console.log('choosing');
     let x = Math.floor(Math.random() * args.split(' ').length);
     message.channel.send("I will decide for you, "+answer(message.author.id,message.author.username)+"!\n" + args.split(' ')[x]+"!");
-  } else if (message.content === settings.prefix + 'help') {
+  } 
+  else if (message.content === settings.prefix + 'help') {
       message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something")
-  } else if (command === 'temp') {
+  } 
+  else if (command === 'temp') {
     let pattern = /(-?[0-9]+)([cf])/i;
     if (pattern.test(args)){
       let tempTo = pattern.exec(args);
       tempTo[1] = parseInt(tempTo[1]);
       if (tempTo[2] === 'c'||tempTo[2] === 'C'){
         message.channel.send(tempTo[0] + ' is ' + Math.round(tempTo[1]*1.8+32) + '°F! (~' + Math.round(tempTo[1]+273) + 'K)');
-      } else if (tempTo[2] === 'f'||tempTo[2] === 'F'){
+      } 
+  else if (tempTo[2] === 'f'||tempTo[2] === 'F'){
         message.channel.send(tempTo[0] + ' is ' + Math.round((tempTo[1]-32)/1.8) + '°C! (~' + Math.round((tempTo[1]+459)/1.8) + 'K)')
       }
     } else message.channel.send('I don\'t understand :(  Please ask me about ##C or ##F');
-  } else if (command === 'roll'){
+  } 
+  else if (command === 'roll'){
     let pattern = /[0-9]+[d][0-9]+[\+|-]?[0-9]*/i;
     if(pattern.test(args)){
       let diceReg = /([0-9]+)[d]([0-9]+)([\+|-]?)([0-9]*)/i;
@@ -159,13 +180,16 @@ bot.on('message', message => {
         message.channel.send("You rolled: " + total + ' !  (' + diceArray[0] + ' = ' + results.join(' + ') + ', -' + diceArray[4] + ')');
       }else
       message.channel.send("You rolled: " + total + ' !  (' + diceArray[0] + ' = ' + results.join(' + ') + ')');
-    } else if(!pattern.test(dice)) {message.channel.send('I don\'t understand :(  Please tell me to roll "#d#+#"!')}
-  } else if (command === 'setgame'){
+    } 
+  else if(!pattern.test(dice)) {message.channel.send('I don\'t understand :(  Please tell me to roll "#d#+#"!')}
+  } 
+  else if (command === 'setgame'){
     if(!args){
       args = null;
     }
       bot.user.setGame(args);
-  } else if (command === 'urban'){
+  } 
+  else if (command === 'urban'){
     let definition = urban(args);
     definition.first(function(json){
         try{message.channel.send(args + ' \: ' + json.definition);}catch(err){message.channel.send(args + ' is not a defined word in urbandictionnary');}
