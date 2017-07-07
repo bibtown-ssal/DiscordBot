@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const bot = new Discord.Client();
+const client = new Discord.Client();
 const settings = require('./settings.json');
 const store = require('json-fs-store')();
 var idList = require('./store/Identifier.json');
@@ -7,9 +7,9 @@ const urban = require('urban');
 
 
 //initialisation
-bot.on('ready',() =>{
+client.on('ready',() =>{
     console.log('online and ready!');
-    bot.user.setGame("!help for command");
+    client.user.setGame("!help for command");
 });
 //sanitize input
 function escapeRegExp(string) {
@@ -24,7 +24,7 @@ function answer(id,name){
 
 function nickcallback(nick){
     return function(){
-        message.guild.member(bot.user).setNickname(nick);
+        message.guild.member(client.user).setNickname(nick);
         //message.channel.send("I'm changing my nickname to '" + name + "' thanks to " + answer(message.author.id,message.author.username));
     }
 }
@@ -50,7 +50,7 @@ function parseArgs(message, prefix) {
 
 
 try{
-bot.on('message', message => {
+client.on('message', message => {
   //prevent bot from answering bots
   if (message.author.bot) return;
   //making sure the message was to the bot
@@ -128,12 +128,13 @@ bot.on('message', message => {
   }
   else if (command === 'nickname'){
       if(args != '!nickname'){
-      message.channel.send("I'm changing my nickname to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
-      message.guild.member(bot.user).setNickname(args);
+        //let name = client.user.nickname;    returns undefined :( :( :(
+        message.channel.send("I'm changing my nickname to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
+        message.guild.member(client.user).setNickname(args);
 //      setTimeout(nickcallback(args), 750);
-      console.log(args + ' ' + message.author.username);
-      addID('name',args);
-}
+        console.log(args + ' ' + message.author.username);
+        addID('name',args);
+      }
   }
   else if (command === 'choose'){
     console.log('choosing');
@@ -187,7 +188,7 @@ bot.on('message', message => {
     if(!args){
       args = null;
     }
-      bot.user.setGame(args);
+      client.user.setGame(args);
   } 
   else if (command === 'urban'){
     let definition = urban(args);
@@ -201,4 +202,4 @@ bot.on('message', message => {
   }
   
 });}catch(err){console.log(err);}
-try{ bot.login(settings.token);}catch(err){console.log(err);}
+try{ client.login(settings.token);}catch(err){console.log(err);}
