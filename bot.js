@@ -1,9 +1,11 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const settings = require('./settings.json');
+const score = require('./store/Score.json');
 const store = require('json-fs-store')();
 var idList = require('./store/Identifier.json');
 const urban = require('urban');
+var scoreI = 0;
 
 
 //initialisation
@@ -35,6 +37,14 @@ function addID(id,name){
   return;
 }
 
+function addScore(name){
+    if (score[name]) { score[name] += 1;}
+    else score[name] = 1;
+    scoreI++;
+    if (scoreI > 100) {store.add(score, function(err){ if (err) throw err;})}
+    return;
+}
+
 function parseArgs(message, prefix) {
   command = message.slice(prefix.length);
   //remove anything after a space from command
@@ -59,6 +69,9 @@ client.on('message', message => {
   let command;
   let args;
   //Prefix set, no name set, starts with prefix
+  
+  addScore(message.author.username);
+  
   if(settings.prefix) {
     if(!message.content.startsWith(settings.prefix)) {
       return;
@@ -128,10 +141,8 @@ client.on('message', message => {
   }
   else if (command === 'nickname'){
       if(args != '!nickname'){
-        //let name = client.user.nickname;    returns undefined :( :( :(
         message.channel.send("I'm changing my nickname to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
         message.guild.member(client.user).setNickname(args);
-//      setTimeout(nickcallback(args), 750);
         console.log(args + ' ' + message.author.username);
         addID('name',args);
       }
