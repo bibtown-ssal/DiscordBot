@@ -39,10 +39,17 @@ function addID(id,name){
 
 function addScore(name){
     if (score[name]) { score[name] += 1;}
-    else score[name] = 1;
+    else {
+            score[name] = 1;
+            store.add(score, function(err){ if (err) throw err;});
+    }
     scoreI++;
-    if (scoreI > 100) {store.add(score, function(err){ if (err) throw err;})}
+    if (scoreI > 50) {store.add(score, function(err){ if (err) throw err;})}
     return;
+}
+
+function myScore(name){
+    return score[name];
 }
 
 function parseArgs(message, prefix) {
@@ -208,6 +215,9 @@ client.on('message', message => {
     });
 
   } 
+  else if (command === 'score'){
+    message.channel.send(answer(message.author.id,message.author.username) + " : " + myScore(message.author.username));
+  }
   else {
     message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
   }

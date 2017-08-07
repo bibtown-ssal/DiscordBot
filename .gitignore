@@ -4,3 +4,4 @@ node_modules
 hardcopy.0
 .gitattribute
 Score.json
+LastSeen.json
