@@ -246,7 +246,9 @@ client.on('message', message => {
           j = i+1;
           mess += j;
           mess += ". ";
-          mess += scoreArr[i];
+          mess += scoreArr[i][0];
+          mess += " : ";
+          mess += scoreArr[i][1];
           mess += "\n";
       }
       message.channel.send(mess);
