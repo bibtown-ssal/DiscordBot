@@ -52,6 +52,17 @@ function myScore(name){
     return score[name];
 }
 
+function sortScore(){
+    var arr = [];
+    for (var name in score){
+        arr.push([name, score[name]]);
+    }
+    arr.splice(0,1);
+    arr.sort(function(a,b){return b[1] - a[1]});
+    //console.log(arr);
+    return arr;
+}
+
 function parseArgs(message, prefix) {
   command = message.slice(prefix.length);
   //remove anything after a space from command
@@ -147,8 +158,9 @@ client.on('message', message => {
       message.channel.send(coin[x] + ', ' + answer(message.author.id,message.author.username) + ', I hope its the result you wanted!');
   }
   else if (command === 'nickname'){
-      if(args != '!nickname'){
-        message.channel.send("I'm changing my nickname to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
+      if(args != '!nickname' && message.author.id != 254749551221538818){
+        idList['lastname'] = idList['name'];
+        message.channel.send("I'm changing my nickname from '" + idList['lastname'] +"' to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
         message.guild.member(client.user).setNickname(args);
         console.log(args + ' ' + message.author.username);
         addID('name',args);
@@ -160,7 +172,7 @@ client.on('message', message => {
     message.channel.send("I will decide for you, "+answer(message.author.id,message.author.username)+"!\n" + args.split(' ')[x]+"!");
   } 
   else if (message.content === settings.prefix + 'help') {
-      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something")
+      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something\n!score : gives your score!")
   } 
   else if (command === 'temp') {
     let pattern = /(-?[0-9]+)([cf])/i;
@@ -217,6 +229,27 @@ client.on('message', message => {
   } 
   else if (command === 'score'){
     message.channel.send(answer(message.author.id,message.author.username) + " : " + myScore(message.author.username));
+  }
+  //else if (command === 'fullscore'){
+    //  message.channel.send(score[]);
+  //}
+  else if (command === 'rank'){
+      scoreArr = sortScore();
+//      console.log(scoreArr);
+      var top = parseInt(args);
+      if (isNaN(top)){top = 5;}
+      else if (top > scoreArr.length){
+          top = scoreArr.length;
+      }
+      var mess = "";
+      for (i = 0; i < top; i++){
+          j = i+1;
+          mess += j;
+          mess += ". ";
+          mess += scoreArr[i];
+          mess += "\n";
+      }
+      message.channel.send(mess);
   }
   else {
     message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
