@@ -1,11 +1,12 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const settings = require('./settings.json');
-const score = require('./store/Score.json');
+var score = require('./store/Score.json');
 const store = require('json-fs-store')();
 var idList = require('./store/Identifier.json');
 const urban = require('urban');
 var scoreI = 0;
+var DB = require('./store/StoreFile.json');
 
 
 //initialisation
@@ -13,6 +14,12 @@ client.on('ready',() =>{
     console.log('online and ready!');
     client.user.setGame("!help for command");
 });
+client.on("guildCreate", guild => {
+  // This event triggers when the bot joins a guild.
+  console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+  client.user.setGame(`on ${client.guilds.size} servers`);
+});
+
 //sanitize input
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -24,28 +31,34 @@ function answer(id,name){
   }else return name;
 }
 
-function nickcallback(nick){
-    return function(){
-        message.guild.member(client.user).setNickname(nick);
-        //message.channel.send("I'm changing my nickname to '" + name + "' thanks to " + answer(message.author.id,message.author.username));
-    }
-}
-
 function addID(id,name){
   idList[id] = name;
   store.add(idList, function(err){ if (err) throw err;})
   return;
 }
 
+/*function reload(){
+    score = require('./store/Score.json');
+    console.log('reloading score');
+}*/ //figure out how to make it do that, right now it doesn't seem to want to load from file, only save to once it did the loading on line4
+
 function addScore(name){
     if (score[name]) { score[name] += 1;}
     else {
             score[name] = 1;
-            store.add(score, function(err){ if (err) throw err;});
+            saveScore();
     }
     scoreI++;
-    if (scoreI > 50) {store.add(score, function(err){ if (err) throw err;})}
+    if (scoreI > 50) {
+        saveScore();
+        scoreI = 0;    
+    }
     return;
+}
+
+function saveScore(){
+    store.add(score, function(err){ if (err) throw err;});
+    console.log('saving');
 }
 
 function myScore(name){
@@ -77,7 +90,7 @@ function parseArgs(message, prefix) {
 }
 
 
-try{
+
 client.on('message', message => {
   //prevent bot from answering bots
   if (message.author.bot) return;
@@ -99,41 +112,13 @@ client.on('message', message => {
       if (!command) {command = args.substring(1);}
     }
   } 
-  else if(IDlist.name) {
-   if(!message.content.startsWith(IDlist.name + ': ')) {
-      return;
-   } else {
-      command = message.content.slice(message.content.indexOf(IDlist.name + ': ') + (IDlist.name + ': ').length);
-      if(command.indexOf(' ') !== -1) {
-        command = command.slice(0, command.indexOf(' '));
-      }
-      args = message.content.split(" ").slice(2).join(" ");
-   }
-  } else {
-    console.log('must set name or prefix');
-}
-/*
-  let parsed;
-  //Prefix set, no name set, starts with prefix
-  if(settings.prefix && message.content.startsWith(settings.prefix)) {
-    parsed = parseArgs(message.content, settings.prefix);
-  } 
-  else if(idList.botName && message.content.startsWith(idList.botName + ': ')) {
-    parsed = parseArgs(message.content, idList.botName);
-  }
-//  console.log("processing");
-  let command = parsed.command;
-  let args = parsed.args;
-  console.log('command: "' + command + '"');
-  console.log('args: "' + args + '"');
-  //now either starts with prefix or 'name: '*/
 
-  //stringify the message without the command
   if(command.startsWith("!")) return;
   if (command === 'ping'){
       message.channel.send('Pong!');
   }
   else  if (command === 'say'){
+      message.delete();
       message.channel.send(args);
   }
   else  if (command === 'source'){
@@ -142,8 +127,14 @@ client.on('message', message => {
   else  if (command === 'hug'||command === 'hugs'||command === 'HUG'||command === 'HUGS'||command === 'Hugs'||command === 'Hug'){
       if(args === '!hug'||args === '!hugs'||args === '!HUG'||args === '!HUGS'||args === '!Hugs'||args === '!Hug'){	  
         message.channel.send('*hugs ' + answer(message.author.id,message.author.username) + ' back*');	 
-       }  else{message.channel.send('*hugs ' + args + '*');  }
+       }  else{
+           message.delete();
+           message.channel.send('*hugs ' + args + '*');  
+       }
   } 
+  else if (command === 'selfie'){
+      message.channel.send("http://i.imgur.com/dryL4OG.jpg");
+  }
   else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
 //    console.log(idList);
@@ -158,7 +149,7 @@ client.on('message', message => {
       message.channel.send(coin[x] + ', ' + answer(message.author.id,message.author.username) + ', I hope its the result you wanted!');
   }
   else if (command === 'nickname'){
-      if(args != '!nickname' && message.author.id != 254749551221538818){
+      if(args != '!nickname' /*&& message.author.id == '256642313550430220'*/){
         idList['lastname'] = idList['name'];
         message.channel.send("I'm changing my nickname from '" + idList['lastname'] +"' to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
         message.guild.member(client.user).setNickname(args);
@@ -171,8 +162,8 @@ client.on('message', message => {
     let x = Math.floor(Math.random() * args.split(' ').length);
     message.channel.send("I will decide for you, "+answer(message.author.id,message.author.username)+"!\n" + args.split(' ')[x]+"!");
   } 
-  else if (message.content === settings.prefix + 'help') {
-      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something\n!score : gives your score!")
+  else if (command === 'help') {
+      message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something\n!score : gives your score!\n!selfie = self explanatory")
   } 
   else if (command === 'temp') {
     let pattern = /(-?[0-9]+)([cf])/i;
@@ -230,19 +221,25 @@ client.on('message', message => {
   else if (command === 'score'){
     message.channel.send(answer(message.author.id,message.author.username) + " : " + myScore(message.author.username));
   }
-  //else if (command === 'fullscore'){
-    //  message.channel.send(score[]);
-  //}
+  else if (command === 'reset'){
+    saveScore();
+  }
+  else if (command === 'members'){ 
+    if(message.guild.available){
+        console.log(message.guild.members.array());}
+    else { console.log("guild not available"); }
+  }
   else if (command === 'rank'){
       scoreArr = sortScore();
-//      console.log(scoreArr);
       var top = parseInt(args);
       if (isNaN(top)){top = 5;}
       else if (top > scoreArr.length){
           top = scoreArr.length;
       }
       var mess = "";
-      for (i = 0; i < top; i++){
+      var i = 0;
+      var j = i+1;
+      for (i; i < top/2; i++){
           j = i+1;
           mess += j;
           mess += ". ";
@@ -251,11 +248,21 @@ client.on('message', message => {
           mess += scoreArr[i][1];
           mess += "\n";
       }
+      var mess2 = "";
       message.channel.send(mess);
+            for (i; i < top; i++){
+          j = i+1;
+          mess2 += j;
+          mess2 += ". ";
+          mess2 += scoreArr[i][0];
+          mess2 += " : ";
+          mess2 += scoreArr[i][1];
+          mess2 += "\n";
+      }
+      message.channel.send(mess2);
   }
   else {
     message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
   }
-  
-});}catch(err){console.log(err);}
+});
 try{ client.login(settings.token);}catch(err){console.log(err);}
