@@ -1,76 +1,99 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const settings = require('./settings.json');
-var score = require('./store/Score.json');
+//var score = require('./store/Score.json');
 const store = require('json-fs-store')();
-var idList = require('./store/Identifier.json');
+//var idList = require('./store/Identifier.json');
 const urban = require('urban');
 var scoreI = 0;
-var DB = require('./store/StoreFile.json');
-
+var DB = require('./store/Bot_and_User_Info.json');
+ 
 
 //initialisation
 client.on('ready',() =>{
     console.log('online and ready!');
     client.user.setGame("!help for command");
 });
-client.on("guildCreate", guild => {
-  // This event triggers when the bot joins a guild.
-  console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
-  client.user.setGame(`on ${client.guilds.size} servers`);
-});
 
+function user(username){
+    this.username = username;
+    this.score = 0;
+    this.botNick = username;
+    this.role = "";
+}
+
+client.on('guildMemberAdd', member => {
+    var person = new user(member.user.username);
+    DB[member.id] = person;
+    member.addRole("368261968685039636");
+    saveDB();
+    console.log('new person!');
+}); 
+ 
 //sanitize input
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 function answer(id,name){
-  if(idList[id]){
-    return idList[id];
+  if(DB[id].botNick){
+    return DB[id].botNick;
   }else return name;
 }
 
 function addID(id,name){
-  idList[id] = name;
-  store.add(idList, function(err){ if (err) throw err;})
+  DB[id].botNick = name;
+  store.add(DB, function(err){ if (err) throw err;})
   return;
 }
+
+
 
 /*function reload(){
     score = require('./store/Score.json');
     console.log('reloading score');
 }*/ //figure out how to make it do that, right now it doesn't seem to want to load from file, only save to once it did the loading on line4
 
-function addScore(name){
-    if (score[name]) { score[name] += 1;}
-    else {
-            score[name] = 1;
-            saveScore();
-    }
+function addScore(id){ 
+    DB[id].score += 1;
     scoreI++;
     if (scoreI > 50) {
-        saveScore();
+        saveDB();
         scoreI = 0;    
     }
     return;
 }
 
-function saveScore(){
-    store.add(score, function(err){ if (err) throw err;});
+function updateUsers(members, numbers){
+    console.log('start');
+    for (i = 0; i < numbers; i++){
+        
+        //DB[members[i].user.id].role = members[i].hoistRole.name;
+    } 
+    saveDB();
+    console.log('end');
+}
+
+function saveDB(){
+    store.add(DB, function(err){ if (err) throw err;});
     console.log('saving');
 }
 
-function myScore(name){
-    return score[name];
+function myScore(id){
+    console.log(id, DB[id], DB['bot']);
+    return DB[id].score;
 }
 
-function sortScore(){
+function sortScore(member, numbers){
     var arr = [];
-    for (var name in score){
-        arr.push([name, score[name]]);
+    for (i = 0; i < numbers; i++){
+        if(DB[member[i].user.id].score > 0){
+            arr.push([DB[member[i].user.id].username, DB[member[i].user.id].score])
+        }
     }
-    arr.splice(0,1);
+    /*for (var name in score){
+        arr.push([name, score[name]]);
+    }*/
     arr.sort(function(a,b){return b[1] - a[1]});
     //console.log(arr);
     return arr;
@@ -98,10 +121,10 @@ client.on('message', message => {
 //  console.log("recieved message: '" + message.content + "'");
 
   let command;
-  let args;
+  let args; 
   //Prefix set, no name set, starts with prefix
   
-  addScore(message.author.username);
+  addScore(message.author.id);
   
   if(settings.prefix) {
     if(!message.content.startsWith(settings.prefix)) {
@@ -137,8 +160,8 @@ client.on('message', message => {
   }
   else if (command === 'test'){
     message.channel.send(answer(message.author.id,message.author.username));
-//    console.log(idList);
-  } 
+    //console.log(DB[message.author.id].username);
+  }  
   else if (command === 'callme'){
     addID(message.author.id, args);
     message.channel.send('I will now call you: ' + answer(message.author.id,message.author.username));
@@ -150,11 +173,11 @@ client.on('message', message => {
   }
   else if (command === 'nickname'){
       if(args != '!nickname' /*&& message.author.id == '256642313550430220'*/){
-        idList['lastname'] = idList['name'];
-        message.channel.send("I'm changing my nickname from '" + idList['lastname'] +"' to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
+        DB.bot.lastname = DB.bot.botNick;
+        message.channel.send("I'm changing my nickname from '" + DB.bot.lastname +"' to '" + args + "' thanks to " + answer(message.author.id,message.author.username));
         message.guild.member(client.user).setNickname(args);
         console.log(args + ' ' + message.author.username);
-        addID('name',args);
+        addID('bot',args);
       }
   }
   else if (command === 'choose'){
@@ -219,18 +242,17 @@ client.on('message', message => {
 
   } 
   else if (command === 'score'){
-    message.channel.send(answer(message.author.id,message.author.username) + " : " + myScore(message.author.username));
+    message.channel.send(answer(message.author.id,message.author.username) + " : " + myScore(message.author.id));
   }
   else if (command === 'reset'){
     saveScore();
   }
-  else if (command === 'members'){ 
-    if(message.guild.available){
-        console.log(message.guild.members.array());}
-    else { console.log("guild not available"); }
+  else if(command === 'users'){
+      members = message.guild.members.array();
+      updateUsers(members,message.guild.memberCount);
   }
   else if (command === 'rank'){
-      scoreArr = sortScore();
+      scoreArr = sortScore(message.guild.members.array(),message.guild.memberCount);
       var top = parseInt(args);
       if (isNaN(top)){top = 5;}
       else if (top > scoreArr.length){

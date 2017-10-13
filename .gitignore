@@ -1,7 +1,5 @@
-settings.json
-Identifier.json
 node_modules
 hardcopy.0
 .gitattribute
-Score.json
-LastSeen.json
+Bot_and_User_Info.json
+settings.json
