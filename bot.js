@@ -183,7 +183,7 @@ function beautify(num){
     let j = Math.floor((num.length-1)/3); //how many '
     let k = Math.floor(num.length%3); //starting at which position
     if (k == 0){ k = 3;}    //correction for 0
-    for(z = 0; z < j; z++){     //iterate through the number adding '
+    for(let i = 0; i < j; i++){     //iterate through the number adding '
         num = num.slice(0,k) + "'" + num.slice(k); 
         k += 4;     //updating next ' position
     }
@@ -192,9 +192,10 @@ function beautify(num){
 
 function order(arr,h){
     let result = "";
+    h = h.toLowerCase().slice(0,1); // array -> string -> lower case -> first character
     if(h == 'p'){ //order houses according to points
         arr.sort(function(a,b){return b[2] - a[2]});
-        for(i = 0; i < arr.length; i++){
+        for(let i = 0; i < arr.length; i++){
             result += i+1 + ') ' + arr[i][0] + ' (' + beautify(arr[i][2]) + ' points)\n\tWith ' + arr[i][1].length + ' members, that gives them ' + beautify(Math.floor(arr[i][2]/arr[i][1].length)) + ' points per member!\n\n';
 
         } 
@@ -268,6 +269,10 @@ function clean(member, numbers){
         roleUpdate(member, numbers);
     }
     saveDB();
+}
+
+function houseChange(id,house){
+    
 }
 
 client.on('message', message => {
@@ -386,9 +391,6 @@ client.on('message', message => {
     else if (command === 'hat'){
         
     }
-    else if (command === 'n'){
-        message.channel.send(beautify(args));
-    }
 /*    else if (command === 'clean'){ //removes score = 0 members from houses
         members = message.guild.members.array();
         clean(members,message.guild.memberCount);
@@ -397,16 +399,14 @@ client.on('message', message => {
     
     }
     else if(command === 'house'){
-        let arg = args.join("");
-        arg = arg.toLowerCase();
         if(args.length){ 
-            message.channel.send(order(houseMembers(),arg.slice(0,1))); //calls for the house sorter and sends the house ID
+            message.channel.send(order(houseMembers(),args.join(""))); //calls for the house sorter and sends the house ID
         }else {
             message.channel.send("Please ask for the house member list like this: '!House Ravenclaw'\nThank you!");
         }
     }
     else if(command === 'points'){
-        message.channel.send(order(houseMembers(),'p'));
+        message.channel.send(order(houseMembers(),command));
     }
     else if (command === 'rank'){
         scoreArr = sortScore();
