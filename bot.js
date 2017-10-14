@@ -94,7 +94,7 @@ function sortScore(){
     for(let key in DB){
         if(DB_ID_CHECK(DB[key])){
             if (DB[key].score > 0){
-                arr.push([DB[key].username, beautify(DB[key].score)]);
+                arr.push([DB[key].username, DB[key].score]);
             }
         }
     }
@@ -183,7 +183,7 @@ function beautify(num){
     let j = Math.floor((num.length-1)/3); //how many '
     let k = Math.floor(num.length%3); //starting at which position
     if (k == 0){ k = 3;}    //correction for 0
-    for(i = 0; i < j; i++){     //iterate through the number adding '
+    for(z = 0; z < j; z++){     //iterate through the number adding '
         num = num.slice(0,k) + "'" + num.slice(k); 
         k += 4;     //updating next ' position
     }
@@ -195,12 +195,9 @@ function order(arr,h){
     if(h == 'p'){ //order houses according to points
         arr.sort(function(a,b){return b[2] - a[2]});
         for(i = 0; i < arr.length; i++){
-/*            let total = arr[i][2]; 
-            console.log(total);
-            beautify(total);            //This causes infinite loop??
-            console.log(total);*/
-            result += i+1 + ') ' + arr[i][0] + ' (' + arr[i][2] + ' points)\n\tWith ' + arr[i][1].length + ' members, that gives them ' + Math.floor(arr[i][2]/arr[i][1].length) + ' points per member!\n\n';
-        }
+            result += i+1 + ') ' + arr[i][0] + ' (' + beautify(arr[i][2]) + ' points)\n\tWith ' + arr[i][1].length + ' members, that gives them ' + beautify(Math.floor(arr[i][2]/arr[i][1].length)) + ' points per member!\n\n';
+
+        } 
     }else{
         j = 0;
         switch (h){
@@ -292,8 +289,12 @@ client.on('message', message => {
     
     if (command === 'say'){ //makes the bot say something
         logged(message.author.username, args.join(" "),"say");
-        setTimeout(function(){message.delete();},50);
-        message.channel.send(args.join(" "));
+        if(message.author.id == '254749551221538818'){
+            message.channel.send('Why do you keep making me say KUK D=  <:cry:368754447964307457>')
+        }else{
+            setTimeout(function(){message.delete();},50);
+            message.channel.send(args.join(" "));
+        }
     }
     else if(command === 'ping'){
         message.channel.send("pong!");
@@ -423,7 +424,7 @@ client.on('message', message => {
             mess += ". ";
             mess += scoreArr[i][0];
             mess += " : ";
-            mess += scoreArr[i][1];
+            mess += beautify(scoreArr[i][1]);
             mess += "\n";
         }
         var mess2 = "";
@@ -434,7 +435,7 @@ client.on('message', message => {
             mess2 += ". ";
             mess2 += scoreArr[i][0];
             mess2 += " : ";
-            mess2 += scoreArr[i][1];
+            mess2 += beautify(scoreArr[i][1]);
             mess2 += "\n";
         }
         message.channel.send(mess2);
