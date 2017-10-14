@@ -94,11 +94,14 @@ function sortScore(){
     for(let key in DB){
         if(DB_ID_CHECK(DB[key])){
             if (DB[key].score > 0){
-                arr.push([DB[key].username, DB[key].score]);
+                arr.push([key, DB[key].score]);
             }
         }
     }
     arr.sort(function(a,b){return b[1] - a[1]});
+    for(let i = 0; i < arr.length; i++){
+        DB[arr[i][0]].rank = i+1;        
+    }
     return arr;
 }
 //takes #d#+# as an arg and returns the results in a pre-set string
@@ -116,7 +119,7 @@ function roll(args){
             results.push(Math.floor(Math.random()*diceArray[2]) + 1); //puts in an array each diceroll
         }
         var total = 0;
-        for(i=0; i < results.length; i++){
+        for(let i=0; i < results.length; i++){
             total += results[i];    //sums up the dicerolls
         }
         if (diceArray[3] === '+'){ //if we add to the rolls
@@ -192,22 +195,22 @@ function beautify(num){
 
 function order(arr,h){
     let result = "";
-    h = h.toLowerCase().slice(0,1); // array -> string -> lower case -> first character
+    h = h.toLowerCase().slice(0,1); // string -> lower case -> first character
     if(h == 'p'){ //order houses according to points
         arr.sort(function(a,b){return b[2] - a[2]});
-        for(let i = 0; i < arr.length; i++){
-            result += i+1 + ') ' + arr[i][0] + ' (' + beautify(arr[i][2]) + ' points)\n\tWith ' + arr[i][1].length + ' members, that gives them ' + beautify(Math.floor(arr[i][2]/arr[i][1].length)) + ' points per member!\n\n';
-
+        for(let i = 0; i < arr.length; i++){ //goes though each house, in order of decreasing total points
+            result += i+1 + ') ' + arr[i][0] + ' (' + beautify(arr[i][2]) + ' points)\n\
+            \tWith ' + arr[i][1].length + ' members, that gives them ' + beautify(Math.floor(arr[i][2]/arr[i][1].length)) + ' points per member!\n\n';
         } 
     }else{
         j = 0;
-        switch (h){
+        switch (h){ //selects the right house, enumerates the members
             case 'r':
                 result += "The Curious House of **Ravenclaw**! :\n";
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
-                for(i = 0; i < arr[j][1].length; i++){
+                for(let i = 0; i < arr[j][1].length; i++){
                     result += "\t" + arr[j][1][i] + "\n";
                 }break
             case 's':
@@ -216,7 +219,7 @@ function order(arr,h){
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
-                for(i = 0; i < arr[j][1].length; i++){
+                for(let i = 0; i < arr[j][1].length; i++){
                     result += "\t" + arr[j][1][i] + "\n";
                 }break
             case 'h':
@@ -225,7 +228,7 @@ function order(arr,h){
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
-                for(i = 0; i < arr[j][1].length; i++){
+                for(let i = 0; i < arr[j][1].length; i++){
                     result += "\t" + arr[j][1][i] + "\n";
                 }break
             case 'g':
@@ -234,7 +237,7 @@ function order(arr,h){
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
-                for(i = 0; i < arr[j][1].length; i++){
+                for(let i = 0; i < arr[j][1].length; i++){
                     result += "\t" + arr[j][1][i] + "\n";
                 }break
             case 'u':
@@ -243,7 +246,7 @@ function order(arr,h){
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
-                for(i = 0; i < arr[j][1].length; i++){
+                for(let i = 0; i < arr[j][1].length; i++){
                     result += "\t" + arr[j][1][i] + "\n";
                 }break
             default: result += "I don't understand what house you are looking for :(";
@@ -254,14 +257,14 @@ function order(arr,h){
 }
 
 function roleUpdateAll(member, numbers){
-     for(i = 0; i < numbers; i++){
+     for(let i = 0; i < numbers; i++){
         DB[members[i].user.id].role = member[i].hoistRole.name;
     }
     saveDB();
 }
 
 function clean(member, numbers){
-    for(i = 0; i < numbers; i++){
+    for(let i = 0; i < numbers; i++){
         if(DB[members[i].user.id].score == 0 && DB[members[i]]){
             member[i].addRole("368260553690316801");
             member[i].removeRole("368233731481403393");
@@ -302,7 +305,7 @@ client.on('message', message => {
         }
     }
     else if(command === 'ping'){
-        message.channel.send("pong!");
+        message.channel.send("I don't want to play ping pong anymore");
     }
     else  if (command === 'source'){
         message.channel.send('https://github.com/bibtown-ssal/DiscordBot/');
@@ -375,7 +378,17 @@ client.on('message', message => {
         });
     } 
     else if (command === 'score'){
-        message.channel.send(answer(message.author.id) + " : " + myScore(message.author.id));
+        let end = "th";
+        sortScore();
+        switch (DB[message.author.id].rank){
+            case '3': end = 'rd';
+                break
+            case '2': end = 'nd';
+                break
+            case '1': end = 'st';
+            default:
+        }
+        message.channel.send(answer(message.author.id) + " : " + myScore(message.author.id) + "  (" + DB[message.author.id].rank + end + ")");
     }
     else if (command === 'reset'){
         saveDB();
@@ -389,7 +402,7 @@ client.on('message', message => {
         roleUpdateAll(members,message.guild.memberCount);
     }
     else if (command === 'hat'){
-        
+        houseChange(message.guild.members.array(),message.guild.memberCount);
     }
 /*    else if (command === 'clean'){ //removes score = 0 members from houses
         members = message.guild.members.array();
@@ -409,7 +422,7 @@ client.on('message', message => {
         message.channel.send(order(houseMembers(),command));
     }
     else if (command === 'rank'){
-        scoreArr = sortScore();
+        let scoreArr = sortScore();
         var top = parseInt(args);
         if (isNaN(top)){top = 5;}
         else if (top > scoreArr.length){
@@ -417,26 +430,16 @@ client.on('message', message => {
         }
         var mess = "";
         var i = 0;
-        var j = i+1;
+        var j;
         for (i; i < top/2; i++){
             j = i+1;
-            mess += j;
-            mess += ". ";
-            mess += scoreArr[i][0];
-            mess += " : ";
-            mess += beautify(scoreArr[i][1]);
-            mess += "\n";
+            mess += j + ". " + DB[scoreArr[i][0]].username + " : " + beautify(scoreArr[i][1]) + "\n";
         }
         var mess2 = "";
         message.channel.send(mess);
         for (i; i < top; i++){
             j = i+1;
-            mess2 += j;
-            mess2 += ". ";
-            mess2 += scoreArr[i][0];
-            mess2 += " : ";
-            mess2 += beautify(scoreArr[i][1]);
-            mess2 += "\n";
+            mess2 += j + ". " + DB[scoreArr[i][0]].username + " : " + beautify(scoreArr[i][1]) + "\n";
         }
         message.channel.send(mess2);
     }
