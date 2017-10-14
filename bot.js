@@ -27,11 +27,21 @@ client.on('guildMemberAdd', member => {
         DB[member.id] = person;
         member.addRole("368260553690316801");
         saveDB();
-        console.log('new person!');
+        console.log('new person! ' + DB[member.id]).username;
     }
 }); 
 
-//sanitize input
+client.on('guildMemberRemove', member => {
+    delete DB[member.id];
+});
+
+function DB_ID_CHECK(id){
+    if(id != "bot" || id != "id" || id != 'Houses'){
+        return true;
+    } return false;
+}
+
+//sanitize input (currently not in use)
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -75,19 +85,17 @@ function saveDB(){
 }
 //returns the user's score
 function myScore(id){
-    console.log(id, DB[id], DB['bot']);
-    return DB[id].score;
+    return beautify(DB[id].score);
 }
 //sorts every one's score (if score > 0)  
 // NB: fix it to use for(var key in DB) instead of retrieving user list
-function sortScore(member, numbers){
+function sortScore(){
     var arr = [];
-//    arr = DB[key];
-    console.log(arr[0],arr[1],arr[2]);
-    arr = [];
-    for (i = 0; i < numbers; i++){
-        if(DB[member[i].user.id].score > 0){
-            arr.push([DB[member[i].user.id].username, DB[member[i].user.id].score])
+    for(let key in DB){
+        if(DB_ID_CHECK(DB[key])){
+            if (DB[key].score > 0){
+                arr.push([DB[key].username, beautify(DB[key].score)]);
+            }
         }
     }
     arr.sort(function(a,b){return b[1] - a[1]});
@@ -122,7 +130,7 @@ function roll(args){
         } 
     else {message.channel.send('I don\'t understand :(  Please tell me to roll "#d#+#"!')} //if the string wasn't set properly
 } 
-
+//logs a few bot command: "date": "command,username: text"
 function logged(name,text,com){
     var d = new Date();
     log[d.toString().slice(0,24)] = com + ", " +name + " : " + text;
@@ -130,7 +138,141 @@ function logged(name,text,com){
     console.log('logged');
     return;
 } 
-   
+
+function houseMembers(){
+    var arr = [];
+    var Ravenclaw = [];
+    var Gryffindor = [];
+    var Slytherin = [];
+    var Hufflepuff = [];
+    var Unsorted = [];
+    var R = G = S = H = U = 0;
+    for(let key in DB){
+        if(DB_ID_CHECK(DB[key])){
+            switch(DB[key].role){
+                case "Ravenclaw":
+                    Ravenclaw.push(DB[key].username);
+                    R += DB[key].score;
+                    break
+                case "Slytherin":
+                    Slytherin.push(DB[key].username);
+                    S += DB[key].score;
+                    break
+                case "Hufflepuff":
+                    Hufflepuff.push(DB[key].username);
+                    H += DB[key].score;
+                    break
+                case "Gryffindor":
+                    Gryffindor.push(DB[key].username);
+                    G += DB[key].score;
+                    break
+                case "Unsorted":
+                    Unsorted.push(DB[key].username);
+                    U += DB[key].score;
+                    break
+                default: break;
+            }
+        }
+    }
+    arr.push(['Ravenclaw' , Ravenclaw, R],['Slytherin', Slytherin, S],['Hufflepuff', Hufflepuff, H],['Gryffindor', Gryffindor, G], ['Unsorted',  Unsorted, U]);
+    return arr;
+}
+
+function beautify(num){
+    num = num.toString();
+    let j = Math.floor((num.length-1)/3); //how many '
+    let k = Math.floor(num.length%3); //starting at which position
+    if (k == 0){ k = 3;}    //correction for 0
+    for(i = 0; i < j; i++){     //iterate through the number adding '
+        num = num.slice(0,k) + "'" + num.slice(k); 
+        k += 4;     //updating next ' position
+    }
+    return num;
+}
+
+function order(arr,h){
+    let result = "";
+    if(h == 'p'){ //order houses according to points
+        arr.sort(function(a,b){return b[2] - a[2]});
+        for(i = 0; i < arr.length; i++){
+/*            let total = arr[i][2]; 
+            console.log(total);
+            beautify(total);            //This causes infinite loop??
+            console.log(total);*/
+            result += i+1 + ') ' + arr[i][0] + ' (' + arr[i][2] + ' points)\n\tWith ' + arr[i][1].length + ' members, that gives them ' + Math.floor(arr[i][2]/arr[i][1].length) + ' points per member!\n\n';
+        }
+    }else{
+        j = 0;
+        switch (h){
+            case 'r':
+                result += "The Curious House of **Ravenclaw**! :\n";
+                arr[j][1].sort(function (a, b) {
+                    return a.toLowerCase().localeCompare(b.toLowerCase());
+                });
+                for(i = 0; i < arr[j][1].length; i++){
+                    result += "\t" + arr[j][1][i] + "\n";
+                }break
+            case 's':
+                j = 1;
+                result += "The Devoted House of **Slytherin**! :\n";
+                arr[j][1].sort(function (a, b) {
+                    return a.toLowerCase().localeCompare(b.toLowerCase());
+                });
+                for(i = 0; i < arr[j][1].length; i++){
+                    result += "\t" + arr[j][1][i] + "\n";
+                }break
+            case 'h':
+                j = 2;
+                result += "The Sturdy House of **Hufflepuff**! :\n";
+                arr[j][1].sort(function (a, b) {
+                    return a.toLowerCase().localeCompare(b.toLowerCase());
+                });
+                for(i = 0; i < arr[j][1].length; i++){
+                    result += "\t" + arr[j][1][i] + "\n";
+                }break
+            case 'g':
+                j = 3;
+                result += "The Bold House of **Gryffindor**! :\n";
+                arr[j][1].sort(function (a, b) {
+                    return a.toLowerCase().localeCompare(b.toLowerCase());
+                });
+                for(i = 0; i < arr[j][1].length; i++){
+                    result += "\t" + arr[j][1][i] + "\n";
+                }break
+            case 'u':
+                j = 4;
+                result += "The Versatile **Unsorted**! :\n";
+                arr[j][1].sort(function (a, b) {
+                    return a.toLowerCase().localeCompare(b.toLowerCase());
+                });
+                for(i = 0; i < arr[j][1].length; i++){
+                    result += "\t" + arr[j][1][i] + "\n";
+                }break
+            default: result += "I don't understand what house you are looking for :(";
+        }
+        
+    }
+    return result;
+}
+
+function roleUpdateAll(member, numbers){
+     for(i = 0; i < numbers; i++){
+        DB[members[i].user.id].role = member[i].hoistRole.name;
+    }
+    saveDB();
+}
+
+function clean(member, numbers){
+    for(i = 0; i < numbers; i++){
+        if(DB[members[i].user.id].score == 0 && DB[members[i]]){
+            member[i].addRole("368260553690316801");
+            member[i].removeRole("368233731481403393");
+        }
+        roleUpdate(member, numbers);
+    }
+    saveDB();
+}
+
 client.on('message', message => {
     //prevent bot from answering bots
     if (message.author.bot) return;
@@ -147,10 +289,14 @@ client.on('message', message => {
         command = args.shift().toLowerCase(); //removes the first word of the array and returns it, leaving array(arg1, arg2)
     } 
     if(command.startsWith("!")) return; //if somebody puts '!!!' as their message, it isn't talking to the bot
+    
     if (command === 'say'){ //makes the bot say something
         logged(message.author.username, args.join(" "),"say");
         setTimeout(function(){message.delete();},50);
         message.channel.send(args.join(" "));
+    }
+    else if(command === 'ping'){
+        message.channel.send("pong!");
     }
     else  if (command === 'source'){
         message.channel.send('https://github.com/bibtown-ssal/DiscordBot/');
@@ -226,17 +372,43 @@ client.on('message', message => {
         message.channel.send(answer(message.author.id) + " : " + myScore(message.author.id));
     }
     else if (command === 'reset'){
-        saveScore();
+        saveDB();
     }
     else if(command === 'usersupdate'){
         members = message.guild.members.array();
         updateUsers(members,message.guild.memberCount);
     }
+    else if (command === 'roleupdateall'){
+        members = message.guild.members.array();
+        roleUpdateAll(members,message.guild.memberCount);
+    }
+    else if (command === 'hat'){
+        
+    }
+    else if (command === 'n'){
+        message.channel.send(beautify(args));
+    }
+/*    else if (command === 'clean'){ //removes score = 0 members from houses
+        members = message.guild.members.array();
+        clean(members,message.guild.memberCount);
+    }*/
     else if(command === 'user'){ 
     
     }
+    else if(command === 'house'){
+        let arg = args.join("");
+        arg = arg.toLowerCase();
+        if(args.length){ 
+            message.channel.send(order(houseMembers(),arg.slice(0,1))); //calls for the house sorter and sends the house ID
+        }else {
+            message.channel.send("Please ask for the house member list like this: '!House Ravenclaw'\nThank you!");
+        }
+    }
+    else if(command === 'points'){
+        message.channel.send(order(houseMembers(),'p'));
+    }
     else if (command === 'rank'){
-        scoreArr = sortScore(message.guild.members.array(),message.guild.memberCount);
+        scoreArr = sortScore();
         var top = parseInt(args);
         if (isNaN(top)){top = 5;}
         else if (top > scoreArr.length){
