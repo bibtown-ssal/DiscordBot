@@ -27,7 +27,7 @@ client.on('guildMemberAdd', member => {
         DB[member.id] = person;
         member.addRole("368260553690316801");
         saveDB();
-        console.log('new person! ' + DB[member.id]).username;
+        console.log('new person! ' + DB[member.id].username);
     }
 }); 
 
@@ -206,7 +206,7 @@ function order(arr,h){
         j = 0;
         switch (h){ //selects the right house, enumerates the members
             case 'r':
-                result += "The Curious House of **Ravenclaw**! :\n";
+                result += "The Curious House of **Ravenclaw**! <:Ravenclaw:368866240523141120> :\n";
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
@@ -215,7 +215,7 @@ function order(arr,h){
                 }break
             case 's':
                 j = 1;
-                result += "The Devoted House of **Slytherin**! :\n";
+                result += "The Devoted House of **Slytherin**! <:Slytherin:368866196826882049> :\n";
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
@@ -224,7 +224,7 @@ function order(arr,h){
                 }break
             case 'h':
                 j = 2;
-                result += "The Sturdy House of **Hufflepuff**! :\n";
+                result += "The Sturdy House of **Hufflepuff**! <:Hufflepuff:368866221174554627> :\n";
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
@@ -233,7 +233,7 @@ function order(arr,h){
                 }break
             case 'g':
                 j = 3;
-                result += "The Bold House of **Gryffindor**! :\n";
+                result += "The Bold House of **Gryffindor**! <:Gryffindor:368866070590652416> :\n";
                 arr[j][1].sort(function (a, b) {
                     return a.toLowerCase().localeCompare(b.toLowerCase());
                 });
@@ -274,8 +274,60 @@ function clean(member, numbers){
     saveDB();
 }
 
-function houseChange(id,house){
-    
+function houseChange(member,house){
+    house = house.toLowerCase().slice(0,1);
+    let txt = "";
+    let preHouse = DB[member.id].role;
+    if(house.length >0){
+        switch (preHouse){
+            case "Ravenclaw":
+                member.removeRole("352552061247815687").catch(console.error);
+                break
+            case "Slytherin":
+                member.removeRole("352552039663796234").catch(console.error);
+                break
+            case "Hufflepuff":
+                member.removeRole("352551973737725953").catch(console.error);
+                break
+            case "Gryffindor":
+                member.removeRole("352552010194616332").catch(console.error);
+                break
+            case "Unsorted":
+                member.removeRole("368233731481403393").catch(console.error);
+                break
+            default:
+        }
+    }
+    switch (house){
+        case 'r':
+            member.addRole("352552061247815687").catch(console.error);
+            txt = "Welcome to the Curious House of Ravenclaw! <:Ravenclaw:368866240523141120>";
+            DB[member.id].role = "Ravenclaw";
+            break
+        case 's':
+            member.addRole("352552039663796234").catch(console.error);
+            txt = "Welcome to the Devoted House of Slytherin! <:Slytherin:368866196826882049>";
+            DB[member.id].role = "Slytherin";
+            break
+        case 'h':
+            member.addRole("352551973737725953").catch(console.error);
+            txt = "The Sturdy House of Hufflepuff! <:Hufflepuff:368866221174554627>";
+            DB[member.id].role = "hufflepuff";
+            break
+        case 'g':
+            member.addRole("352552010194616332").catch(console.error);
+            txt = "Welcome to the Bold House of Gryffindor! <:Gryffindor:368866070590652416>";
+            DB[member.id].role = "Gryffindor";
+            break
+        case 'u':
+            member.addRole("368233731481403393").catch(console.error);
+            txt = "Welcome to the Versatile Unsorted!!";
+            DB[member.id].role = "Unsorted";
+            break
+        default: txt = "You haven't selected a house :(";
+    }
+    saveDB();
+    return txt;
 }
 
 client.on('message', message => {
@@ -284,14 +336,18 @@ client.on('message', message => {
     
     let command;
     let args; 
-    let arg;
     addScore(message.author.id);
-  
-    if(!message.content.startsWith(settings.prefix)) { //making sure the message was to the bot
+    
+    if(!message.content.startsWith(settings.prefix) /*&& message.mentions.roles.first().id != "268185157331058698" && message.mentions.members.first().user.id != '310217647252045840'*/) { //making sure the message was to the bot;; role/@bot not working currently
         return;
     } else {
-        args = message.content.slice(settings.prefix.length).trim().split(/ +/g); //removes the prefix, puts every 'word' of the message in an array(command, arg1, arg2)
-        command = args.shift().toLowerCase(); //removes the first word of the array and returns it, leaving array(arg1, arg2)
+        if(message.content.startsWith(settings.prefix)){
+            args = message.content.slice(settings.prefix.length).trim().split(/ +/g); //removes the prefix, puts every 'word' of the message in an array(command, arg1, arg2)
+            command = args.shift().toLowerCase(); //removes the first word of the array and returns it, leaving array(arg1, arg2)
+        } else {
+            console.log(message.content);
+            return;
+        }
     } 
     if(command.startsWith("!")) return; //if somebody puts '!!!' as their message, it isn't talking to the bot
     
@@ -381,11 +437,38 @@ client.on('message', message => {
         let end = "th";
         sortScore();
         switch (DB[message.author.id].rank){
-            case '3': end = 'rd';
+            case 3: 
+            case 23:
+            case 33:
+            case 43:
+            case 53:
+            case 63:
+            case 73:
+            case 83:
+            case 93:
+                end = 'rd';
                 break
-            case '2': end = 'nd';
+            case 2:
+            case 22:
+            case 32:
+            case 42:
+            case 52:
+            case 62:
+            case 72:
+            case 82:
+            case 92:
+                end = 'nd';
                 break
-            case '1': end = 'st';
+            case 1:
+            case 21:
+            case 31:
+            case 41:
+            case 51:
+            case 61:
+            case 71:
+            case 81:
+            case 91: 
+                end = 'st';
             default:
         }
         message.channel.send(answer(message.author.id) + " : " + myScore(message.author.id) + "  (" + DB[message.author.id].rank + end + ")");
@@ -402,7 +485,7 @@ client.on('message', message => {
         roleUpdateAll(members,message.guild.memberCount);
     }
     else if (command === 'hat'){
-        houseChange(message.guild.members.array(),message.guild.memberCount);
+        message.channel.send(houseChange(message.member,args.join("")));
     }
 /*    else if (command === 'clean'){ //removes score = 0 members from houses
         members = message.guild.members.array();
