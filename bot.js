@@ -193,15 +193,22 @@ function beautify(num){
     return num;
 }
 
-function order(arr,h){
+function order(arr,h,v){
     let result = "";
+    console.log(v + v.length);
     h = h.toLowerCase().slice(0,1); // string -> lower case -> first character
-    if(h == 'p'){ //order houses according to points
+    if(h == 'p' && v.length !== 0){ //order houses according to points
         arr.sort(function(a,b){return b[2] - a[2]});
         for(let i = 0; i < arr.length; i++){ //goes though each house, in order of decreasing total points
             result += i+1 + ') ' + arr[i][0] + ' (' + beautify(arr[i][2]) + ' points)\n\
             \tWith ' + arr[i][1].length + ' members, that gives them ' + beautify(Math.floor(arr[i][2]/arr[i][1].length)) + ' points per member!\n\n';
         } 
+    }else if(h == "p"){
+        arr.sort(function(a,b){return b[2] - a[2]});
+        for(let i = 0; i < arr.length; i++){ //goes though each house, in order of decreasing total points
+            result +=  i+1 + ') ' + arr[i][0] + ' (' + beautify(arr[i][2]) + ' points)\n';
+        }
+        result += "!points v for a more detailed version";
     }else{
         j = 0;
         switch (h){ //selects the right house, enumerates the members
@@ -257,7 +264,9 @@ function order(arr,h){
 }
 
 function roleUpdateAll(member, numbers){
+    let x;
      for(let i = 0; i < numbers; i++){
+        x = member[i].hoistRole; 
         DB[members[i].user.id].role = member[i].hoistRole.name;
     }
     saveDB();
@@ -294,6 +303,9 @@ function houseChange(member,house){
                 break
             case "Unsorted":
                 member.removeRole("368233731481403393").catch(console.error);
+                break
+            case "Online":
+                member.removeRole("368260553690316801").catch(console.error);
                 break
             default:
         }
@@ -361,7 +373,11 @@ client.on('message', message => {
         }
     }
     else if(command === 'ping'){
-        message.channel.send("I don't want to play ping pong anymore");
+        if(message.channel.name != 'chatter'){
+            message.channel.send("I don't want to play ping pong here");
+        } else{
+            message.channel.send("Pong!");
+        }
     }
     else  if (command === 'source'){
         message.channel.send('https://github.com/bibtown-ssal/DiscordBot/');
@@ -495,36 +511,42 @@ client.on('message', message => {
     
     }
     else if(command === 'house'){
-        if(args.length){ 
-            message.channel.send(order(houseMembers(),args.join(""))); //calls for the house sorter and sends the house ID
-        }else {
-            message.channel.send("Please ask for the house member list like this: '!House Ravenclaw'\nThank you!");
-        }
+        if(message.channel.name == 'chatter' || message.channel.name == 'bothing'){
+            if(args.length){ 
+                message.channel.send(order(houseMembers(),args.join(""))); //calls for the house sorter and sends the house ID
+            }else {
+                message.channel.send("Please ask for the house member list like this: '!House Ravenclaw'\nThank you!");
+            }
+        }else   message.channel.send("Please ask me this in chatter, thank you!");
     }
     else if(command === 'points'){
-        message.channel.send(order(houseMembers(),command));
+        if(message.channel.name == 'chatter' || message.channel.name == 'bothing'){
+            message.channel.send(order(houseMembers(),command, args));
+        } else message.channel.send("Please ask me this in chatter, thank you!");
     }
     else if (command === 'rank'){
-        let scoreArr = sortScore();
-        var top = parseInt(args);
-        if (isNaN(top)){top = 5;}
-        else if (top > scoreArr.length){
-            top = scoreArr.length;
-        }
-        var mess = "";
-        var i = 0;
-        var j;
-        for (i; i < top/2; i++){
-            j = i+1;
-            mess += j + ". " + DB[scoreArr[i][0]].username + " : " + beautify(scoreArr[i][1]) + "\n";
-        }
-        var mess2 = "";
-        message.channel.send(mess);
-        for (i; i < top; i++){
-            j = i+1;
-            mess2 += j + ". " + DB[scoreArr[i][0]].username + " : " + beautify(scoreArr[i][1]) + "\n";
-        }
-        message.channel.send(mess2);
+        if(message.channel.name == 'chatter' || message.channel.name == 'bothing'){
+            let scoreArr = sortScore();
+            var top = parseInt(args);
+            if (isNaN(top)){top = 5;}
+            else if (top > scoreArr.length){
+                top = scoreArr.length;
+            }
+            var mess = "";
+            var i = 0;
+            var j;
+            for (i; i < top/2; i++){
+                j = i+1;
+                mess += j + ". " + DB[scoreArr[i][0]].username + " : " + beautify(scoreArr[i][1]) + "\n";
+            }
+            var mess2 = "";
+            message.channel.send(mess);
+            for (i; i < top; i++){
+                j = i+1;
+                mess2 += j + ". " + DB[scoreArr[i][0]].username + " : " + beautify(scoreArr[i][1]) + "\n";
+            }
+            message.channel.send(mess2);
+        }else   message.channel.send("Please ask me this in chatter, thank you!");
     }
     else {
         message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
