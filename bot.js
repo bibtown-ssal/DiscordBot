@@ -6,6 +6,8 @@ var log = require('./store/log.json');
 const urban = require('urban');
 var scoreI = 0;
 var DB = require('./store/Bot_and_User_Info.json');
+const sql = require("sqlite");
+sql.open("./Bibtown.sqlite");
  
 
 //initialisation
@@ -58,7 +60,7 @@ function addID(id,name){
     return;
 }
 //adds 1 pts to that user
-function addScore(id){ 
+function addScore1(id){ 
     DB[id].score += 1;
     scoreI++;
     if (scoreI > 50) {
@@ -67,12 +69,47 @@ function addScore(id){
     }
     return;
 }
+function remScore(id){ 
+    DB[id].score -= 1;
+    return;
+}
+/*function addScore(message){
+    let query = "SELECT userId, username, points FROM users WHERE userId = ?";
+    let data = [message.author.id];
+    sql.get(query, data, (err, row) => {
+            console.log(err + "\ntest1");
+        }
+        if(!row){            
+            let query2 = "INSERT INTO users (userId, username, points) VALUES (?, ?, ?)";
+            let data2 = [message.author.id, message.author.username, 1];
+            sql.run(query2, data2 (err, row) => {
+                console.log(err + "\ntest2");
+            });
+            console.log('test2');
+        }else {
+            let query3 = "UPDATE users SET points = ${row.points +1} WHERE userId = ${message.author.id}"
+            let data3 =
+            sql.run();
+            console.log(row.points);
+            console.log('test');
+        }
+    }).catch(() => {
+        console.error;
+        console.log("2");
+        sql.run("CREATE TABLE IF NOT EXISTS users (userId TEXT, username TEXT, nickname TEXT, house TEXT, points INTEGER)").then(() => {
+            console.log("3");
+            sql.run("INSERT INTO users (userId, username, points) VALUES (?, ?, ?)", [message.author.id, message.author.username, 1]);
+        })
+    });*/
 //fills the DB w/ new users it missed
 function updateUsers(members, numbers){
     console.log('start');
     for (i = 0; i < numbers; i++){
         if(!DB[members[i].user.id]){
             DB[members[i].user.id] = new user(members[i].user.username);
+        }
+        if(DB[members[i].user.id].username != members[i].user.username){
+            DB[members[i].user.id].username = members[i].user.username;
         }
     } 
     saveDB();
@@ -195,7 +232,6 @@ function beautify(num){
 
 function order(arr,h,v){
     let result = "";
-    console.log(v + v.length);
     h = h.toLowerCase().slice(0,1); // string -> lower case -> first character
     if(h == 'p' && v.length !== 0){ //order houses according to points
         arr.sort(function(a,b){return b[2] - a[2]});
@@ -323,8 +359,8 @@ function houseChange(member,house){
             break
         case 'h':
             member.addRole("352551973737725953").catch(console.error);
-            txt = "The Sturdy House of Hufflepuff! <:Hufflepuff:368866221174554627>";
-            DB[member.id].role = "hufflepuff";
+            txt = "Welcome to the Sturdy House of Hufflepuff! <:Hufflepuff:368866221174554627>";
+            DB[member.id].role = "Hufflepuff";
             break
         case 'g':
             member.addRole("352552010194616332").catch(console.error);
@@ -342,22 +378,122 @@ function houseChange(member,house){
     return txt;
 }
 
+function announcement(members,num){
+    for(let i = 0; i < num; i++){
+        if(members[i].user.id !== "" && DB[members[i].user.id].score > 0){
+            members[i].send("");
+        }
+    }
+    return;
+}
+
+function createTable(){
+    let query = "CREATE TABLE users (userId TEXT, username TEXT, nickname TEXT, botName TEXT, house TEXT, points INTEGER)";
+    sql.run(query).then(() => {
+        console.log('create table');
+    }) 
+}
+/*
+function userInTable(mess){
+    let query = "SELECT username, points, house FROM users WHERE userId = ?";
+    let data = [mess.author.id];
+    sql.get(query,data, (err,row) => {
+        console.log("error :(");
+    }
+        if(!row){
+            let query2 = "INSERT INTO users (userId, username, nickname)";
+        }
+    )
+    
+ /*          let query = "SELECT userId, username, points FROM users WHERE userId = ?";
+    let data = [message.author.id];
+    sql.get(query, data, (err, row) => {
+            console.log(err + "\ntest1");
+        }
+        if(!row){            
+            let query2 = "INSERT INTO users (userId, username, points) VALUES (?, ?, ?)";
+            let data2 = [message.author.id, message.author.username, 1];
+            sql.run(query2, data2 (err, row) => {
+                console.log(err + "\ntest2");
+            });
+            console.log('test2');
+        }else {
+            let query3 = "UPDATE users SET points = ${row.points +1} WHERE userId = ${message.author.id}"
+            let data3 =
+            sql.run();
+            console.log(row.points);
+            console.log('test');
+        }
+    }).catch(() => {
+        console.error;
+        console.log("2");
+        sql.run("CREATE TABLE IF NOT EXISTS users (userId TEXT, username TEXT, nickname TEXT, house TEXT, points INTEGER)").then(() => {
+            console.log("3");
+            sql.run("INSERT INTO users (userId, username, points) VALUES (?, ?, ?)", [message.author.id, message.author.username, 1]);
+        })
+    });
+}*/
+
+function length(mess,args){
+    let pattern1 = /([0-9]+)'([0-9]")?/i;
+    let pattern2 = /([0-9]+[[\.,][0-9]]?)m/i;
+    let pattern3 = /([0-9]+)cm/i;
+    if (pattern1.test(args)){
+        let measure = pattern1.exec(args);
+        console.log(measure+"     1");
+    } 
+    else if (pattern2.test(args)){
+        let measure = pattern2.exec(args);
+        console.log(measure+"2");
+    }
+    else if (pattern3.test(args)){
+        let measure = pattern3.exec(args);
+        console.log(measure+"3");
+    } else {mess.channel.send("I didn't understand :(");}
+    return
+}
+
+function wait(args, mess){
+    mess.channel.send("okay!");
+    let time = args.shift().toLowerCase();
+    let pattern = /([0-9]+)([smh])/i;
+    if (pattern.test(time)){
+        let timer = pattern.exec(time);
+        let waitTime = parseInt(timer[1]);
+        switch (timer[2]){
+            case 'h':
+                waitTime *= 60;
+            case 'm': 
+                waitTime *= 60;
+            case 's': 
+                waitTime *= 1000;
+                break;
+        }
+        setTimeout(function(){
+            mess.reply(args.join(" "));}, waitTime);    
+    }else{
+        mess.repyl("I didn't understand you :(   Please ask like this: '!remindMe 15s what I will remind you of', where the letter after the time is either s, m or h.")
+    }
+    return;
+}
+
 client.on('message', message => {
     //prevent bot from answering bots
     if (message.author.bot) return;
     
     let command;
     let args; 
-    addScore(message.author.id);
-    
+    //addScore(message);
+        
     if(!message.content.startsWith(settings.prefix) /*&& message.mentions.roles.first().id != "268185157331058698" && message.mentions.members.first().user.id != '310217647252045840'*/) { //making sure the message was to the bot;; role/@bot not working currently
+        addScore1(message.author.id);
         return;
     } else {
         if(message.content.startsWith(settings.prefix)){
             args = message.content.slice(settings.prefix.length).trim().split(/ +/g); //removes the prefix, puts every 'word' of the message in an array(command, arg1, arg2)
             command = args.shift().toLowerCase(); //removes the first word of the array and returns it, leaving array(arg1, arg2)
         } else {
-            console.log(message.content);
+//            console.log(message.content);
             return;
         }
     } 
@@ -365,20 +501,25 @@ client.on('message', message => {
     
     if (command === 'say'){ //makes the bot say something
         logged(message.author.username, args.join(" "),"say");
-        if(message.author.id == '254749551221538818'){
-            message.channel.send('Why do you keep making me say KUK D=  <:cry:368754447964307457>')
-        }else{
-            setTimeout(function(){message.delete();},50);
+             setTimeout(function(){message.delete();},50);
             message.channel.send(args.join(" "));
-        }
     }
     else if(command === 'ping'){
         if(message.channel.name != 'chatter'){
             message.channel.send("I don't want to play ping pong here");
         } else{
             message.channel.send("Pong!");
+            remScore(message.author.id);
         }
+    } 
+    else if(command === 'thank' ||command === 'thanks'||command === 'thanks!' ){
+        message.channel.send("You are very welcome " + answer(message.author.id) + "!");
+        remScore(message.author.id);
     }
+ /*   else if(command === 'announce' && message.author.id == "256642313550430220"){
+        let members = message.guild.members.array();
+        announcement(members,message.guild.memberCount);
+    }*/
     else  if (command === 'source'){
         message.channel.send('https://github.com/bibtown-ssal/DiscordBot/');
     }
@@ -420,7 +561,7 @@ client.on('message', message => {
         message.channel.send("I will decide for you, " + answer(message.author.id) + "!\n" + args[x] + "!");
     } 
     else if (command === 'help') {
-        message.channel.send("!ping \n!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something\n!score : gives your score!\n!selfie = self explanatory")
+        message.channel.send("!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!length #'#\" or #cm or #m to convert in the other units\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something\n!score : gives your score!\n!selfie = self explanatory\n!remindMe ##s message (or ##m, ##h), to make the bot message you the message in that amount of time")
     } 
     else if (command === 'temp') {
         let pattern = /(-?[0-9]+)([cf])/i;
@@ -434,6 +575,9 @@ client.on('message', message => {
             }
         } else message.channel.send('I don\'t understand :(  Please ask me about ##C or ##F');
     } 
+    else if (command === 'length'){
+        length(message, args.join(""));
+    }
     else if (command === 'roll'){
         message.channel.send(roll(args.join("")))
     } 
@@ -524,6 +668,10 @@ client.on('message', message => {
             message.channel.send(order(houseMembers(),command, args));
         } else message.channel.send("Please ask me this in chatter, thank you!");
     }
+    else if(command === 'sql'){
+        userInTable(message.user);
+        console.log('sql done');
+    }
     else if (command === 'rank'){
         if(message.channel.name == 'chatter' || message.channel.name == 'bothing'){
             let scoreArr = sortScore();
@@ -547,6 +695,9 @@ client.on('message', message => {
             }
             message.channel.send(mess2);
         }else   message.channel.send("Please ask me this in chatter, thank you!");
+    }
+    else if(command === 'remindme'){
+        wait(args, message);
     }
     else {
         message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
