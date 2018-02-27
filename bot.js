@@ -15,12 +15,13 @@ client.on('ready',() =>{
     console.log('online and ready!');
     client.user.setGame("!help for command");
 });
-
+ 
 function user(username){
     this.username = username;
     this.score = 0;
     this.botNick = username;
     this.role = "Online";
+    this.pronoun = 0;
 }
 
 client.on('guildMemberAdd', member => {
@@ -30,6 +31,8 @@ client.on('guildMemberAdd', member => {
         member.addRole("368260553690316801");
         saveDB();
         console.log('new person! ' + DB[member.id].username);
+        logged(" Just joined the server! ", "",DB[member.id].username);
+        member.send("Welcome to Bibtown! Make sure to read the #rules and have fun!")
     }
 }); 
 
@@ -301,11 +304,87 @@ function order(arr,h,v){
 
 function roleUpdateAll(member, numbers){
     let x;
-     for(let i = 0; i < numbers; i++){
+    for(let i = 0; i < numbers; i++){
         x = member[i].hoistRole; 
         DB[members[i].user.id].role = member[i].hoistRole.name;
     }
     saveDB();
+}
+
+function pronoun(member, choice){
+    let pronoun = ["417902516928512000","417902829085261834","417902861146521610","417902892201279489",
+            "417902926405828608","417902953014493185", "417904454340182016","417905937618305024"];
+            //He,She,They,She/They,He/They,He/She/They,Ey,Xe
+    text = "Done!";
+    switch(choice){
+        case "1"://He
+            pronounRemove(member);
+            member.addRole("417902516928512000").catch(console.error);
+            DB[member.id].pronoun = 1;
+            break;
+        case "2"://She
+            pronounRemove(member);
+            member.addRole("417902829085261834").catch(console.error);
+            DB[member.id].pronoun = 2;
+            break;
+        case "3"://They
+            pronounRemove(member);
+            member.addRole("417902861146521610").catch(console.error);
+            DB[member.id].pronoun = 3;
+            break;            
+        case "4"://She/They
+            pronounRemove(member);
+            member.addRole("417902892201279489").catch(console.error);
+            DB[member.id].pronoun = 4;
+            break;            
+        case "5"://He/they
+            pronounRemove(member);
+            member.addRole("417902926405828608").catch(console.error);
+            DB[member.id].pronoun = 5;
+            break;            
+        case "6"://He/She/They
+            pronounRemove(member);
+            member.addRole("417902953014493185").catch(console.error);
+            DB[member.id].pronoun = 6;
+            break;            
+        case "7"://Ey
+            pronounRemove(member);
+            member.addRole("417904454340182016").catch(console.error);
+            DB[member.id].pronoun = 7;
+            break;            
+        case "8"://Xe
+            pronounRemove(member);
+            member.addRole("417905937618305024").catch(console.error);
+            DB[member.id].pronoun = 8;
+            break;
+        default:
+            text = "To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n2. They\n4. She/They\n5. He/They\n6. Any \n7. Ey\n8. Xe"
+                    + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!";
+            break
+    }
+    return text;
+}
+
+function pronounRemove(member){
+    switch(DB[member.id].pronoun){
+        case 1: member.removeRole("417902516928512000").catch(console.error);
+            break;
+        case 2: member.removeRole("417902829085261834").catch(console.error);
+            break;
+        case 3: member.removeRole("417902861146521610").catch(console.error);
+            break;            
+        case 4: member.removeRole("417902892201279489").catch(console.error);
+            break;            
+        case 5: member.removeRole("417902926405828608").catch(console.error);
+            break;            
+        case 6: member.removeRole("417902953014493185").catch(console.error);
+            break;           
+        case 7: member.removeRole("417904454340182016").catch(console.error);
+            break;            
+        case 8: member.removeRole("417905937618305024").catch(console.error);
+            break;             
+    }
+    return;
 }
 
 function clean(member, numbers){
@@ -440,7 +519,7 @@ function length(mess,args){
     let pattern3 = /([0-9]+)cm/i;
     if (pattern1.test(args)){
         let measure = pattern1.exec(args);
-        console.log(measure+"     1");
+        console.log(measure+"1");
     } 
     else if (pattern2.test(args)){
         let measure = pattern2.exec(args);
@@ -454,7 +533,6 @@ function length(mess,args){
 }
 
 function wait(args, mess){
-    mess.channel.send("okay!");
     let time = args.shift().toLowerCase();
     let pattern = /([0-9]+)([smh])/i;
     if (pattern.test(time)){
@@ -469,10 +547,11 @@ function wait(args, mess){
                 waitTime *= 1000;
                 break;
         }
+        mess.channel.send("okay!");
         setTimeout(function(){
             mess.reply(args.join(" "));}, waitTime);    
     }else{
-        mess.repyl("I didn't understand you :(   Please ask like this: '!remindMe 15s what I will remind you of', where the letter after the time is either s, m or h.")
+        mess.reply("I didn't understand you :(   Please ask like this: '!remindMe 15s what I will remind you of', where the letter after the time is either s, m or h.")
     }
     return;
 }
@@ -483,6 +562,7 @@ client.on('message', message => {
     
     let command;
     let args; 
+    let testArray = [];
     //addScore(message);
         
     if(!message.content.startsWith(settings.prefix) /*&& message.mentions.roles.first().id != "268185157331058698" && message.mentions.members.first().user.id != '310217647252045840'*/) { //making sure the message was to the bot;; role/@bot not working currently
@@ -561,7 +641,7 @@ client.on('message', message => {
         message.channel.send("I will decide for you, " + answer(message.author.id) + "!\n" + args[x] + "!");
     } 
     else if (command === 'help') {
-        message.channel.send("!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!nickname aName : nickname me!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!length #'#\" or #cm or #m to convert in the other units\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!say something : makes the bot say something\n!score : gives your score!\n!selfie = self explanatory\n!remindMe ##s message (or ##m, ##h), to make the bot message you the message in that amount of time")
+        message.channel.send("!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!length #'#\" or #cm or #m to convert in the other units\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!score : gives your score!\n!selfie = self explanatory\n!remindMe ##s message (or ##m, ##h), to make the bot message you the message in that amount of time")
     } 
     else if (command === 'temp') {
         let pattern = /(-?[0-9]+)([cf])/i;
@@ -631,7 +711,8 @@ client.on('message', message => {
                 end = 'st';
             default:
         }
-        message.channel.send(answer(message.author.id) + " : " + myScore(message.author.id) + "  (" + DB[message.author.id].rank + end + ")");
+        message.author.send(answer(message.author.id) + " : " + myScore(message.author.id) /*+ "  (" + DB[message.author.id].rank + end + ")"*/);
+        message.channel.send("I've just sent you your score :)");        
     }
     else if (command === 'reset'){
         saveDB();
@@ -672,8 +753,17 @@ client.on('message', message => {
         userInTable(message.user);
         console.log('sql done');
     }
+    else if(command === "pronoun" || command === "pronouns"){
+        if(args.lenght == 0){
+            console.log(args);
+            message.channel.send("To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n2. They\n4. She/They\n5. He/They\n6. He/She/They \n7. Ey\n8. Xe"
+                    + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!")
+        }else {
+            message.channel.send(pronoun(message.member, args[0]));
+        }
+    }
     else if (command === 'rank'){
-        if(message.channel.name == 'chatter' || message.channel.name == 'bothing'){
+        if(/*message.channel.name == 'chatter' ||*/message.channel.name == 'bothing'){
             let scoreArr = sortScore();
             var top = parseInt(args);
             if (isNaN(top)){top = 5;}
@@ -695,6 +785,7 @@ client.on('message', message => {
             }
             message.channel.send(mess2);
         }else   message.channel.send("Please ask me this in chatter, thank you!");
+        message.channel.send("Sorry, score is currently being re-evaluated.");
     }
     else if(command === 'remindme'){
         wait(args, message);
