@@ -316,6 +316,9 @@ function pronoun(member, choice){
             "417902926405828608","417902953014493185", "417904454340182016","417905937618305024"];
             //He,She,They,She/They,He/They,He/She/They,Ey,Xe
     text = "Done!";
+    if(choice.length > 1){
+        choice = choice.slice(1);
+    }
     switch(choice){
         case "1"://He
             pronounRemove(member);
@@ -358,7 +361,7 @@ function pronoun(member, choice){
             DB[member.id].pronoun = 8;
             break;
         default:
-            text = "To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n2. They\n4. She/They\n5. He/They\n6. Any \n7. Ey\n8. Xe"
+            text = "To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n3. They\n4. She/They\n5. He/They\n6. Any \n7. Ey\n8. Xe"
                     + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!";
             break
     }
@@ -756,7 +759,7 @@ client.on('message', message => {
     else if(command === "pronoun" || command === "pronouns"){
         if(args.lenght == 0){
             console.log(args);
-            message.channel.send("To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n2. They\n4. She/They\n5. He/They\n6. He/She/They \n7. Ey\n8. Xe"
+            message.channel.send("To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n3. They\n4. She/They\n5. He/They\n6. He/She/They \n7. Ey\n8. Xe"
                     + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!")
         }else {
             message.channel.send(pronoun(message.member, args[0]));
