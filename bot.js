@@ -194,18 +194,22 @@ function houseMembers(){
         if(DB_ID_CHECK(DB[key])){
             switch(DB[key].role){
                 case "Ravenclaw":
+                case "Ravenbrawl":
                     Ravenclaw.push(DB[key].username);
                     R += DB[key].score;
                     break
                 case "Slytherin":
+                case "Slytherkill":
                     Slytherin.push(DB[key].username);
                     S += DB[key].score;
                     break
                 case "Hufflepuff":
+                case "Hufflepunk":
                     Hufflepuff.push(DB[key].username);
                     H += DB[key].score;
                     break
                 case "Gryffindor":
+                case "Kickindor":
                     Gryffindor.push(DB[key].username);
                     G += DB[key].score;
                     break
@@ -313,7 +317,7 @@ function roleUpdateAll(member, numbers){
 
 function pronoun(member, choice){
     let pronoun = ["417902516928512000","417902829085261834","417902861146521610","417902892201279489",
-            "417902926405828608","417902953014493185", "417904454340182016","417905937618305024"];
+            "417902926405828608","417902953014493185", "417904454340182016","417905937618305024","418467443376259079"];
             //He,She,They,She/They,He/They,He/She/They,Ey,Xe
     text = "Done!";
     if(choice.length > 1){
@@ -360,8 +364,13 @@ function pronoun(member, choice){
             member.addRole("417905937618305024").catch(console.error);
             DB[member.id].pronoun = 8;
             break;
+        case "9"://Ae
+            pronounRemove(member);
+            member.addRole("418467443376259079").catch(console.error);
+            DB[member.id].pronoun = 9;
+            break;
         default:
-            text = "To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n3. They\n4. She/They\n5. He/They\n6. Any \n7. Ey\n8. Xe"
+            text = "To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n3. They\n4. She/They\n5. He/They\n6. Any \n7. Ey\n8. Xe\n9. Ae"
                     + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!";
             break
     }
@@ -386,6 +395,7 @@ function pronounRemove(member){
             break;            
         case 8: member.removeRole("417905937618305024").catch(console.error);
             break;             
+        case 9: member.removeRole("418467443376259079").catch(console.error);
     }
     return;
 }
@@ -644,7 +654,7 @@ client.on('message', message => {
         message.channel.send("I will decide for you, " + answer(message.author.id) + "!\n" + args[x] + "!");
     } 
     else if (command === 'help') {
-        message.channel.send("!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!length #'#\" or #cm or #m to convert in the other units\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!score : gives your score!\n!selfie = self explanatory\n!remindMe ##s message (or ##m, ##h), to make the bot message you the message in that amount of time")
+        message.channel.send("!coin : coinflip \n!choose option1 option2 option3 ... optionx : chooses for you!\n!roll #d#+# : will roll the dice combination!\n!temp ##c OR ##f :  will convert it to the other temperature scale\n!callme new name : change what the bot calls you!\n!urban word : gives you the urban dictionnary definition of a word\n!hug : give hug\n!score : gives your score!\n!selfie = self explanatory\n!remindMe ##s message (or ##m, ##h), to make the bot message you the message in that amount of time\n\"!pronoun help\" for instructions on how to set your pronouns\n!hat nameOfHouse : will sort you in one of our 5 houses")
     } 
     else if (command === 'temp') {
         let pattern = /(-?[0-9]+)([cf])/i;
@@ -758,7 +768,6 @@ client.on('message', message => {
     }
     else if(command === "pronoun" || command === "pronouns"){
         if(args.lenght == 0){
-            console.log(args);
             message.channel.send("To select your pronouns, please answer with \"!pronoun #\" where # is the number of your choice:"         + "\n1. He\n2. She\n3. They\n4. She/They\n5. He/They\n6. He/She/They \n7. Ey\n8. Xe"
                     + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!")
         }else {
