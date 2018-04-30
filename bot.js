@@ -13,7 +13,12 @@ sql.open("./Bibtown.sqlite");
 //initialisation
 client.on('ready',() =>{
     console.log('online and ready!');
-    client.user.setGame("!help for command");
+    client.user.setPresence({
+        game: {
+            name: 'for !help',
+            type: 3
+        }
+    });
 });
  
 function user(username){
@@ -171,7 +176,7 @@ function roll(args){
         }else //rolls w/o modification
             return "You rolled: " + total + ' !  (' + diceArray[0] + ' = ' + results.join(' + ') + ')';
         } 
-    else {message.channel.send('I don\'t understand :(  Please tell me to roll "#d#+#"!')} //if the string wasn't set properly
+    else {message.channel.send('I don\'t understand :(  Please tell me to roll "#d#+#"!');} //if the string wasn't set properly
 } 
 //logs a few bot command: "date": "command,username: text"
 function logged(name,text,com){
@@ -414,57 +419,60 @@ function clean(member, numbers){
 function houseChange(member,house){
     house = house.toLowerCase().slice(0,1);
     let txt = "";
-    let preHouse = DB[member.id].role;
-    if(house.length >0){
+    let preHouse = DB[member.id].role.toLowerCase().slice(0,1);
+    let role = "";
+    let roleName = '';
+    switch (house){
+        case 'r':
+            role = "352552061247815687";
+            txt = "Welcome to the Curious House of Ravenclaw! <:Ravenclaw:368866240523141120>";
+            roleName = 'r';
+            break
+        case 's':
+            role = "352552039663796234";
+            txt = "Welcome to the Devoted House of Slytherin! <:Slytherin:368866196826882049>";
+            roleName = 's';
+            break
+        case 'h':
+            role ="352551973737725953";
+            txt = "Welcome to the Sturdy House of Hufflepuff! <:Hufflepuff:368866221174554627>";
+            roleName = 'h';
+            break
+        case 'g':
+            role = "352552010194616332";
+            txt = "Welcome to the Bold House of Gryffindor! <:Gryffindor:368866070590652416>";
+            roleName = 'g';
+            break
+        case 'u':
+            role = "368233731481403393";
+            txt = "Welcome to the Versatile Unsorted!!";
+            roleName = 'u';
+            break
+        default: txt = "You haven't selected a house :(";
+    }
+    if(role.length >0 && preHouse != roleName){
         switch (preHouse){
-            case "Ravenclaw":
+            case 'r':
                 member.removeRole("352552061247815687").catch(console.error);
                 break
-            case "Slytherin":
+            case 's':
                 member.removeRole("352552039663796234").catch(console.error);
                 break
-            case "Hufflepuff":
+            case 'h':
                 member.removeRole("352551973737725953").catch(console.error);
                 break
-            case "Gryffindor":
+            case 'g':
                 member.removeRole("352552010194616332").catch(console.error);
                 break
-            case "Unsorted":
+            case 'u':
                 member.removeRole("368233731481403393").catch(console.error);
                 break
-            case "Online":
+            case 'o':
                 member.removeRole("368260553690316801").catch(console.error);
                 break
             default:
         }
-    }
-    switch (house){
-        case 'r':
-            member.addRole("352552061247815687").catch(console.error);
-            txt = "Welcome to the Curious House of Ravenclaw! <:Ravenclaw:368866240523141120>";
-            DB[member.id].role = "Ravenclaw";
-            break
-        case 's':
-            member.addRole("352552039663796234").catch(console.error);
-            txt = "Welcome to the Devoted House of Slytherin! <:Slytherin:368866196826882049>";
-            DB[member.id].role = "Slytherin";
-            break
-        case 'h':
-            member.addRole("352551973737725953").catch(console.error);
-            txt = "Welcome to the Sturdy House of Hufflepuff! <:Hufflepuff:368866221174554627>";
-            DB[member.id].role = "Hufflepuff";
-            break
-        case 'g':
-            member.addRole("352552010194616332").catch(console.error);
-            txt = "Welcome to the Bold House of Gryffindor! <:Gryffindor:368866070590652416>";
-            DB[member.id].role = "Gryffindor";
-            break
-        case 'u':
-            member.addRole("368233731481403393").catch(console.error);
-            txt = "Welcome to the Versatile Unsorted!!";
-            DB[member.id].role = "Unsorted";
-            break
-        default: txt = "You haven't selected a house :(";
+        member.addRole(role).catch(console.error);
     }
     saveDB();
     return txt;
