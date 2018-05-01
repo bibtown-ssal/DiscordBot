@@ -27,6 +27,7 @@ function user(username){
     this.botNick = username;
     this.role = "Online";
     this.pronoun = 0;
+    this.EntryDaty = new Date();
 }
 
 client.on('guildMemberAdd', member => {
@@ -148,6 +149,61 @@ function sortScore(){
         DB[arr[i][0]].rank = i+1;        
     }
     return arr;
+}
+//adds up total number of messages sent in bibtown
+function addTotalMessage(){
+    let point = 0;
+    let txt = "";
+    let moy = 0;
+    for(let key in DB){
+        if(DB_ID_CHECK(DB[key])){
+            if(DB[key].score > 0){
+                point += DB[key].score;
+            }
+        }
+    }
+    moy = Math.floor(point / hoursInAction());
+    txt = beautify(point) +" messages counted by yours truly (averaging " + beautify(moy) + " per hour)";
+    return txt;
+}
+function hoursInAction(){
+    let hours = 1;
+    let now = new Date();
+    let year = now.getFullYear();
+    let day = now.getDate();
+    let hour = now.getHours();
+    let month = now.getMonth();
+    
+    //temps jusqu'au premier janvier 2018 depuis mise place 08/08/2017
+    hours = 3504;
+    hours += (365*24)*(year-2018)+(24*(Math.floor((year-2017)/4)));
+    switch(month){
+        case 12: hours += 720;
+        case 11: hours += 744;
+        case 10: hours += 720;
+        case 9: hours += 744;
+        case 8: hours += 744;
+        case 7: hours += 720;
+        case 6: hours += 744;
+        case 5: hours += 720;
+        case 4: hours += 744;
+        case 3: if(bissextile(year)){ 
+                    hours += 696;
+                }else{
+                    hours += 672;
+                }
+        case 2: hours += 744;
+        break;
+        default:
+    }
+    hours += (day-1)*24;
+    hours += hour;
+    
+    return hours;
+}
+
+function bissextile(year){
+    return (year%400 == 0 || (year%4 == 0 && year%100 != 0));
 }
 //takes #d#+# as an arg and returns the results in a pre-set string
 function roll(args){
@@ -439,6 +495,7 @@ function houseChange(member,house){
             roleName = 'h';
             break
         case 'g':
+        case 'k':
             role = "352552010194616332";
             txt = "Welcome to the Bold House of Gryffindor! <:Gryffindor:368866070590652416>";
             roleName = 'g';
@@ -462,6 +519,7 @@ function houseChange(member,house){
                 member.removeRole("352551973737725953").catch(console.error);
                 break
             case 'g':
+            case 'k':
                 member.removeRole("352552010194616332").catch(console.error);
                 break
             case 'u':
@@ -809,6 +867,8 @@ client.on('message', message => {
     }
     else if(command === 'remindme'){
         wait(args, message);
+    }else if(command === 'total'){
+        message.channel.send(addTotalMessage());
     }
     else {
         message.channel.send("I don't understand what you just asked. If you meant to ask me something, type \"!help\" to see how to ask me things.");
