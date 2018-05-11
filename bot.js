@@ -435,6 +435,7 @@ function pronoun(member, choice){
                     + "\n\n If your prefered pronouns aren't on the list, I'm sorry. ping @ssalogel and they'll fix it!";
             break
     }
+    saveDB();
     return text;
 }
 
@@ -482,32 +483,32 @@ function houseChange(member,house){
         case 'r':
             role = "352552061247815687";
             txt = "Welcome to the Curious House of Ravenclaw! <:Ravenclaw:368866240523141120>";
-            roleName = 'r';
+            roleName = 'Ravenclaw';
             break
         case 's':
             role = "352552039663796234";
             txt = "Welcome to the Devoted House of Slytherin! <:Slytherin:368866196826882049>";
-            roleName = 's';
+            roleName = 'Slytherin';
             break
         case 'h':
             role ="352551973737725953";
             txt = "Welcome to the Sturdy House of Hufflepuff! <:Hufflepuff:368866221174554627>";
-            roleName = 'h';
+            roleName = 'Hufflepuff';
             break
         case 'g':
         case 'k':
             role = "352552010194616332";
             txt = "Welcome to the Bold House of Gryffindor! <:Gryffindor:368866070590652416>";
-            roleName = 'g';
+            roleName = 'Gryffindor';
             break
         case 'u':
             role = "368233731481403393";
             txt = "Welcome to the Versatile Unsorted!!";
-            roleName = 'u';
+            roleName = 'Unsorted';
             break
         default: txt = "You haven't selected a house :(";
     }
-    if(role.length >0 && preHouse != roleName){
+    if(role.length >0 && preHouse != roleName.toLowerCase().slice(0,1)){
         switch (preHouse){
             case 'r':
                 member.removeRole("352552061247815687").catch(console.error);
@@ -531,6 +532,7 @@ function houseChange(member,house){
             default:
         }
         member.addRole(role).catch(console.error);
+        DB[member.id].role = roleName;
     }
     saveDB();
     return txt;
@@ -612,25 +614,28 @@ function length(mess,args){
 }
 
 function wait(args, mess){
-    let time = args.shift().toLowerCase();
-    let pattern = /([0-9]+)([smh])/i;
-    if (pattern.test(time)){
-        let timer = pattern.exec(time);
-        let waitTime = parseInt(timer[1]);
-        switch (timer[2]){
-            case 'h':
-                waitTime *= 60;
-            case 'm': 
-                waitTime *= 60;
-            case 's': 
-                waitTime *= 1000;
+    let time = "";
+    if(args.length > 0){
+        let time = args.shift().toLowerCase();
+        let pattern = /([0-9]+)([smh])/i;
+        if (pattern.test(time)){
+            let timer = pattern.exec(time);
+            let waitTime = parseInt(timer[1]);
+            switch (timer[2]){
+                case 'h':
+                    waitTime *= 60;
+                case 'm': 
+                    waitTime *= 60;
+                case 's': 
+                    waitTime *= 1000;
                 break;
+            }
+            mess.channel.send("okay!");
+            setTimeout(function(){
+                mess.reply(args.join(" "));}, waitTime);    
+        }else{
+            mess.reply("I didn't understand you :(   Please ask like this: '!remindMe 15s what I will remind you of', where the letter after the time is either s, m or h.")
         }
-        mess.channel.send("okay!");
-        setTimeout(function(){
-            mess.reply(args.join(" "));}, waitTime);    
-    }else{
-        mess.reply("I didn't understand you :(   Please ask like this: '!remindMe 15s what I will remind you of', where the letter after the time is either s, m or h.")
     }
     return;
 }
@@ -687,7 +692,7 @@ client.on('message', message => {
             message.channel.send('*hugs ' + answer(message.author.id) + ' back*');	 
         }  else{ //if the message was '!hug someone
             setTimeout(function(){message.delete();},50);
-            message.channel.send('*hugs ' + args.join(" ") + '*');  
+            message.channel.send('*hugs' + args.join(" ") + '*');  
         }
     } 
     else if (command === 'selfie'){
@@ -866,6 +871,7 @@ client.on('message', message => {
         message.channel.send("Sorry, score is currently being re-evaluated.");
     }
     else if(command === 'remindme'){
+        console.log("waiting " + args);
         wait(args, message);
     }else if(command === 'total'){
         message.channel.send(addTotalMessage());
